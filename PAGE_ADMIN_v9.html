@@ -1,0 +1,4301 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f3ee">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KICKS STUDIO">
+<meta name="description" content="Sistema profesional de archivo de zapatillas, escáner inteligente de etiquetas por visión artificial, gestión de inventario y catálogo interactivo.">
+<title>KICKS STUDIO — Pro Sneaker Archive & OCR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+
+<style>
+:root {
+  --paper: #f4f3ee;
+  --surface: #ffffff;
+  --surface-2: #eceae2;
+  --ink: #121211;
+  --muted: #6e6d66;
+  --line: rgba(18, 18, 17, 0.1);
+  --acid: #d8ff3e;
+  --blue: #2952ff;
+  --emerald: #0d9488;
+  --danger: #e11d48;
+  --shadow: 0 20px 60px -15px rgba(18, 18, 17, 0.09);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: var(--paper); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: calc(36px + var(--safe-bottom));
+}
+.font-display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.04em; }
+.font-mono-code { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.02em; }
+button, input, select, textarea { font: inherit; min-width: 0; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+img { display: block; max-width: 100%; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(18,18,17,0.18); border-radius: 99px; }
+
+.eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.wrap { width: min(1460px, 100%); margin: 0 auto; padding: 0 24px; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding-top: var(--safe-top);
+  background: rgba(244, 243, 238, 0.88);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid var(--line);
+}
+
+.btn {
+  border: 0;
+  border-radius: 13px;
+  padding: 10px 15px;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s ease, background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  white-space: nowrap;
+}
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn-dark { background: var(--ink); color: #fff; }
+.btn-dark:hover:not(:disabled) { background: #292927; }
+.btn-light { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+.btn-light:hover:not(:disabled) { border-color: rgba(18,18,17,0.3); background: #faf9f5; }
+.btn-acid { background: var(--acid); color: var(--ink); border: 1px solid rgba(18,18,17,0.12); }
+.btn-acid:hover:not(:disabled) { background: #cgee2c; box-shadow: 0 6px 20px rgba(216, 255, 62, 0.45); }
+.btn-blue { background: var(--blue); color: #fff; }
+.btn-blue:hover:not(:disabled) { background: #1e42e0; }
+.btn-danger { background: #fff1f2; color: var(--danger); border: 1px solid #fecdd3; }
+
+.chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px 13px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--muted);
+  transition: all 0.16s ease;
+}
+.chip:hover { border-color: rgba(18,18,17,0.3); color: var(--ink); }
+.chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.product-card {
+  background: #fff;
+  border: 1px solid rgba(18,18,17,0.08);
+  border-radius: 22px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: rgba(18,18,17,0.18);
+}
+.product-photo {
+  aspect-ratio: 1.05 / 1;
+  background: #efeee8;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  overflow: hidden;
+}
+.product-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.product-card:hover .product-photo img { transform: scale(1.06); }
+
+.panel {
+  background: #fff;
+  border: 1px solid rgba(18,18,17,0.08);
+  border-radius: 26px;
+  padding: clamp(18px, 2.2vw, 26px);
+  box-shadow: 0 4px 24px rgba(18,18,17,0.03);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.field label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #faf9f6;
+  padding: 0 13px;
+  color: var(--ink);
+  outline: none;
+  font-weight: 600;
+  min-width: 0;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--blue);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(41, 82, 255, 0.12);
+}
+
+.size-btn {
+  border: 1px solid var(--line);
+  background: #f8f7f3;
+  border-radius: 10px;
+  min-width: 52px;
+  padding: 8px 10px;
+  font: 700 11px 'Space Grotesk', sans-serif;
+  transition: all 0.14s ease;
+}
+.size-btn:hover { border-color: var(--ink); }
+.size-btn.selected {
+  background: var(--ink);
+  color: var(--acid);
+  border-color: var(--ink);
+  box-shadow: 0 4px 12px rgba(18,18,17,0.16);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(14, 14, 13, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.overlay.open { display: flex; animation: fadeIn 0.18s ease-out both; }
+.modal {
+  width: min(840px, 100%);
+  max-height: calc(92dvh - var(--safe-top));
+  overflow-y: auto;
+  background: var(--paper);
+  border-radius: 28px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + var(--safe-bottom));
+  transform: translate(-50%, 20px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 120;
+  background: #151514;
+  color: #fff;
+  border-radius: 15px;
+  padding: 12px 18px;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.28);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+  transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+@keyframes pulseScan {
+  0%, 100% { top: 6%; opacity: 0.85; }
+  50% { top: 90%; opacity: 1; }
+}
+.scan-beam {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  height: 2px;
+  background: var(--acid);
+  box-shadow: 0 0 14px 3px var(--acid);
+  animation: pulseScan 2.1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (max-width: 820px) {
+  body { padding-bottom: calc(90px + var(--safe-bottom)); }
+  .wrap { padding: 0 14px; }
+  .toast { bottom: calc(88px + var(--safe-bottom)); }
+}
+
+.print-lookbook { display: none; }
+
+@media print {
+  @page { size: A4 portrait; margin: 7mm; }
+  html, body {
+    background: #ffffff !important;
+    color: #121211 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print, #catalogView, #editorView, #ordersView, .topbar, .overlay, .toast {
+    display: none !important;
+  }
+  .wrap { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+  .print-lookbook {
+    display: block !important;
+    width: 100%;
+  }
+  .print-cover {
+    min-height: 280mm;
+    page-break-after: always;
+    break-after: page;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    background: #111111;
+    color: #ffffff;
+    padding: 15mm;
+    position: relative;
+    border-radius: 4mm;
+  }
+  .print-cover-kicker { font-size: 10px; font-weight: 800; letter-spacing: .26em; text-transform: uppercase; color: #d8ff3e; }
+  .print-cover-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 54px; line-height: .9; letter-spacing: -.06em; text-transform: uppercase; max-width: 165mm; }
+  .print-cover-sub { font-size: 11px; line-height: 1.55; letter-spacing: .12em; text-transform: uppercase; color: #d0d0ca; max-width: 125mm; }
+  .print-cover-hero {
+    height: 122mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #f4f3ee;
+    margin: 7mm 0;
+    border-radius: 4mm;
+    position: relative;
+    border: 2px solid #d8ff3e;
+  }
+  .print-cover-hero img { width: 92%; height: 92%; object-fit: contain; mix-blend-mode: multiply; }
+  .print-cover-badge {
+    position: absolute;
+    top: 6mm;
+    left: 6mm;
+    background: #121211;
+    color: #d8ff3e;
+    padding: 3mm 4.5mm;
+    border-radius: 2mm;
+    font: 700 10px 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .print-cover-price-pill {
+    position: absolute;
+    bottom: 6mm;
+    right: 6mm;
+    background: #d8ff3e;
+    color: #121211;
+    border: 2px solid #121211;
+    padding: 3mm 5mm;
+    border-radius: 3mm;
+    font: 700 22px 'Space Grotesk', sans-serif;
+  }
+  .print-cover-meta { display:flex; justify-content:space-between; gap:12px; border-top:1px solid #333; padding-top:6mm; color:#d0d0ca; font: 9px 'JetBrains Mono',monospace; text-transform:uppercase; }
+  .print-page {
+    page-break-after: always;
+    break-after: page;
+    min-height: 280mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  .print-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #121211;
+    color: #ffffff;
+    padding: 4.5mm 6mm;
+    border-radius: 3mm;
+    margin-bottom: 5mm;
+  }
+  .print-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4.5mm;
+    align-items: stretch;
+  }
+  .print-card {
+    border: 1.5px solid #121211;
+    border-radius: 3.5mm;
+    overflow: hidden;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .print-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.8mm 4mm;
+    background: #121211;
+    color: #ffffff;
+  }
+  .print-card-photo {
+    height: 62mm;
+    background: #f4f3ee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4mm;
+    position: relative;
+    border-bottom: 1.5px solid #121211;
+  }
+  .print-card-photo img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+  }
+  .print-card-body {
+    padding: 3.8mm 4mm 4mm;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    justify-content: space-between;
+  }
+  .print-sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3.5px;
+  }
+  .print-size-pill {
+    border: 1px solid #121211;
+    background: #f4f3ee;
+    color: #121211;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 8.5px;
+    padding: 2px 5.5px;
+    border-radius: 3px;
+  }
+  .print-price-tag {
+    background: #d8ff3e;
+    color: #121211;
+    border: 1.5px solid #121211;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .print-footer {
+    margin-top: 4mm;
+    padding-top: 3mm;
+    border-top: 1.5px solid #121211;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font: 700 8.5px 'JetBrains Mono', monospace;
+    color: #121211;
+    text-transform: uppercase;
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar no-print">
+  <div class="wrap h-[70px] flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('catalog')">
+      <div class="w-10 h-10 rounded-xl bg-[#121211] text-[#d8ff3e] grid place-items-center font-display font-bold text-lg -rotate-3 shadow-sm">K.</div>
+      <div>
+        <div class="font-display font-bold text-base tracking-tight leading-none">KICKS STUDIO</div>
+        <small class="block mt-1 text-[9px] font-extrabold tracking-[0.2em] text-[#6e6d66]">PRO ARCHIVE & VISION OCR</small>
+      </div>
+    </div>
+
+    <nav class="hidden md:flex items-center p-1 bg-[#e6e4dc] rounded-2xl gap-1" aria-label="Navegación principal">
+      <button id="navCatalog" class="px-4 py-2 rounded-xl text-xs font-extrabold transition bg-white text-[#121211] shadow-sm" onclick="switchView('catalog')">
+        CATÁLOGO <span id="countDesk" class="ml-1 px-1.5 py-0.5 rounded-md bg-[#121211] text-[#d8ff3e] font-mono-code text-[10px]">0</span>
+      </button>
+      <button id="navEditor" class="px-4 py-2 rounded-xl text-xs font-extrabold transition text-[#6e6d66] hover:text-[#121211]" onclick="switchView('editor')">
+        ESCÁNER & ESTUDIO
+      </button>
+      <button id="navOrders" class="px-4 py-2 rounded-xl text-xs font-extrabold transition text-[#6e6d66] hover:text-[#121211]" onclick="switchView('orders')">
+        SOLICITUDES <span id="ordersBadgeDesk" class="ml-1 px-1.5 py-0.5 rounded-md bg-[#e11d48] text-white font-mono-code text-[10px] hidden">0</span>
+      </button>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <button class="btn btn-light" id="syncBtn" onclick="syncFromSheets(true)" title="Sincronizar con Google Sheets">
+        <span>↻</span><span class="hidden sm:inline">Sheets</span>
+      </button>
+      <button class="btn btn-light hidden sm:inline-flex" onclick="printCatalog()">
+        <span>🖨</span><span class="hidden lg:inline">PDF / Catálogo</span>
+      </button>
+      <button class="btn btn-acid" onclick="newProduct()">
+        <span>＋</span><span class="hidden sm:inline">Nuevo Par</span>
+      </button>
+      <button class="btn btn-dark !px-3" onclick="openSettings()" title="Ajustes">⚙</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap pt-5">
+  <section id="heroSection" class="no-print flex flex-wrap items-center justify-between gap-4 mb-6 p-4 sm:px-6 rounded-2xl bg-[#161715] text-white">
+    <div class="flex items-center gap-3">
+      <span class="w-2.5 h-2.5 rounded-full bg-[#d8ff3e] animate-pulse"></span>
+      <div>
+        <h1 class="font-display font-bold text-lg sm:text-xl tracking-tight leading-none">ARCHIVO DE CALZADO & ESCÁNER</h1>
+        <p id="catalogSyncLabel" class="text-[11px] text-[#9b9a92] mt-0.5">Almacenamiento local listo</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-6">
+      <div>
+        <strong id="heroCount" class="block font-display text-xl font-bold leading-none">0</strong>
+        <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Pares</span>
+      </div>
+      <div>
+        <strong id="heroBrands" class="block font-display text-xl font-bold leading-none">0</strong>
+        <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Marcas</span>
+      </div>
+      <div>
+        <strong id="heroTotalValue" class="block font-display text-xl font-bold leading-none text-[#d8ff3e]">S/ 0</strong>
+        <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Valor</span>
+      </div>
+      <button class="btn btn-acid !py-2 !px-3.5" onclick="newProduct(); setTimeout(()=>document.getElementById('tagInput').click(), 100)">
+        ⌗ Escanear Etiqueta
+      </button>
+    </div>
+  </section>
+
+  <section id="catalogView">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+      <h2 class="font-display font-bold text-xl sm:text-2xl tracking-tight">Catálogo</h2>
+      <div class="flex flex-wrap gap-1.5 no-print">
+        <button class="btn btn-light !py-2 !px-3" onclick="exportBackup()">↓ Exportar</button>
+        <button class="btn btn-light !py-2 !px-3" onclick="document.getElementById('backupInput').click()">↑ Importar</button>
+        <input id="backupInput" type="file" accept="application/json,.json" hidden onchange="importBackup(event)">
+        <button class="btn btn-light !py-2 !px-3" onclick="shareCatalog()">↗ Compartir</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 mb-3 no-print">
+      <label class="md:col-span-6 flex items-center gap-2.5 bg-white border border-black/10 rounded-2xl px-3.5 h-11 focus-within:border-[#2952ff]">
+        <span class="text-[#6e6d66] text-base">⌕</span>
+        <input id="catalogSearch" type="search" autocomplete="off" placeholder="Buscar por SKU (ej. JQ6925), modelo, marca, categoría o EAN…" class="w-full bg-transparent border-0 outline-none text-xs font-semibold" oninput="debouncedRenderCatalog()">
+        <button type="button" class="text-[#6e6d66] hover:text-black font-bold px-1.5" onclick="clearSearch()" title="Limpiar">×</button>
+      </label>
+      <div class="md:col-span-3">
+        <select id="catalogSort" onchange="renderCatalog()" class="w-full h-11 bg-white border border-black/10 rounded-2xl px-3.5 text-xs font-bold outline-none">
+          <option value="recent">Ordenar: Más recientes</option>
+          <option value="model">Ordenar: Modelo (A-Z)</option>
+          <option value="priceAsc">Precio: Menor a Mayor</option>
+          <option value="priceDesc">Precio: Mayor a Menor</option>
+          <option value="sku">Código SKU (A-Z)</option>
+        </select>
+      </div>
+      <div class="md:col-span-3 flex items-center justify-end px-3 bg-white/60 rounded-2xl border border-black/5 text-xs font-bold text-[#6e6d66]">
+        <span id="catalogResultCount">0 productos</span>
+      </div>
+    </div>
+
+    <div class="flex gap-1.5 overflow-x-auto pb-2 no-print" id="brandChips">
+      <button class="chip active" data-brand="Todos" onclick="setBrand('Todos')">Todas las marcas</button>
+      <button class="chip" data-brand="Adidas" onclick="setBrand('Adidas')">Adidas</button>
+      <button class="chip" data-brand="Nike" onclick="setBrand('Nike')">Nike</button>
+      <button class="chip" data-brand="Jordan" onclick="setBrand('Jordan')">Jordan</button>
+      <button class="chip" data-brand="New Balance" onclick="setBrand('New Balance')">New Balance</button>
+      <button class="chip" data-brand="Puma" onclick="setBrand('Puma')">Puma</button>
+      <button class="chip" data-brand="Asics" onclick="setBrand('Asics')">Asics</button>
+      <button class="chip" data-brand="Reebok" onclick="setBrand('Reebok')">Reebok</button>
+      <button class="chip" data-brand="Otra marca" onclick="setBrand('Otra marca')">Otras</button>
+    </div>
+
+    <div class="flex gap-1.5 overflow-x-auto pb-3 no-print" id="sizeChips"></div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 mt-2" id="catalogGrid"></div>
+
+    <div id="catalogEmpty" class="bg-white border border-dashed border-black/20 rounded-[24px] py-12 px-5 text-center my-4">
+      <div class="w-12 h-12 rounded-2xl bg-[#f4f3ee] mx-auto grid place-items-center font-display font-bold text-lg text-[#6e6d66]">K.</div>
+      <h3 class="font-display font-bold text-xl mt-3 mb-3">Sin pares en el catálogo</h3>
+      <button class="btn btn-dark" onclick="newProduct()">＋ Escanear o Añadir par</button>
+    </div>
+  </section>
+
+  <section id="editorView" class="hidden">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <h2 id="editorHeading" class="font-display font-bold text-xl sm:text-2xl tracking-tight">Nuevo Par</h2>
+      <div class="flex gap-2">
+        <button class="btn btn-light !py-2" type="button" onclick="resetForm()">Limpiar</button>
+        <button class="btn btn-dark !py-2" type="button" onclick="switchView('catalog')">← Catálogo</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div class="lg:col-span-5 grid gap-4 min-w-0">
+
+        <!-- STEP 01: CORNER-LOCK & ZONAL TAG SCANNER -->
+        <section class="panel">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-[#d8ff3e] grid place-items-center font-display font-bold text-[11px]">01</span>
+              <h3 class="font-display font-bold text-lg">Escáner de Etiqueta</h3>
+            </div>
+            <span id="cornerBadge" class="hidden px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-mono-code text-[10px] font-bold">4 ESQUINAS + ZOOM</span>
+          </div>
+
+          <div id="tagDrop" class="bg-[#f4f3ee] border-2 border-dashed border-black/20 hover:border-[#2952ff] transition rounded-2xl min-h-[200px] flex flex-col items-center justify-center text-center p-3 relative overflow-hidden cursor-pointer" onclick="document.getElementById('tagInput').click()">
+            <div class="text-2xl mb-1">⌗</div>
+            <strong class="text-xs">Toca o arrastra la foto de la etiqueta</strong>
+            <span class="text-[11px] text-[#6e6d66] mt-0.5">Detecta esquinas, recorta, hace zoom y extrae SKU, modelo y tallas</span>
+          </div>
+
+          <div id="ocrToolsBar" class="hidden mt-2.5 p-2 bg-[#f4f3ee] rounded-xl border border-black/10">
+            <div class="flex flex-wrap items-center justify-between gap-1.5">
+              <div class="flex items-center gap-1">
+                <button type="button" class="btn btn-light !py-1 !px-2 !text-[11px]" onclick="rotateTagImage(-90)">↺</button>
+                <button type="button" class="btn btn-light !py-1 !px-2 !text-[11px]" onclick="rotateTagImage(90)">↻</button>
+                <button type="button" id="toggleCropModeBtn" class="btn btn-light !py-1 !px-2 !text-[11px]" onclick="toggleAutoTagIsolation()">
+                  Zoom Esquinas: ON
+                </button>
+              </div>
+              <button type="button" class="btn btn-blue !py-1 !px-2.5 !text-[11px]" onclick="reRunOcrAnalysis()">
+                ⚡ Re-escanear
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 mt-2.5">
+            <button type="button" class="btn btn-blue !py-2.5" onclick="document.getElementById('cameraInput').click()">◎ Cámara</button>
+            <button type="button" class="btn btn-light !py-2.5" onclick="document.getElementById('tagInput').click()">↑ Subir foto</button>
+          </div>
+          <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden onchange="handleTagFile(event)">
+          <input id="tagInput" type="file" accept="image/*" hidden onchange="handleTagFile(event)">
+
+          <div class="mt-2.5">
+            <div class="flex items-center justify-between text-[11px] font-bold text-[#6e6d66]">
+              <span id="ocrStatus">Listo para escanear</span>
+              <span id="ocrPercent" class="font-mono-code"></span>
+            </div>
+            <div id="ocrProgressWrap" class="hidden w-full h-1.5 bg-black/10 rounded-full overflow-hidden mt-1">
+              <div id="ocrProgressBar" class="h-full bg-[#2952ff] transition-all duration-200" style="width:0%"></div>
+            </div>
+          </div>
+
+          <div id="ocrReportBox" class="hidden mt-2.5 pt-2.5 border-t border-black/10">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="eyebrow !text-[#121211]">LECTURA POR ZONAS</span>
+              <button type="button" class="text-[10px] font-bold text-[#2952ff] hover:underline" onclick="toggleRawOcrModal()">Texto OCR</button>
+            </div>
+            <div id="ocrBadges" class="flex flex-wrap gap-1"></div>
+          </div>
+        </section>
+
+        <!-- STEP 02: FAST SKU + MODEL SEARCH & URL INPUT -->
+        <section class="panel">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-[#d8ff3e] grid place-items-center font-display font-bold text-[11px]">02</span>
+              <h3 class="font-display font-bold text-lg">Fotos por SKU y URL</h3>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-[#f4f3ee] border border-black/10 mb-2.5">
+            <div class="flex gap-1.5 mb-2">
+              <input id="imageQuery" type="search" placeholder="ADIDAS ULTRARUN 5 TR W JQ6925" class="flex-1 h-9 bg-white border border-black/10 rounded-xl px-3 text-xs font-bold outline-none focus:border-[#2952ff]">
+              <button type="button" class="btn btn-dark !py-1.5 !px-3" onclick="openExternalSearch('google')">Google ↗</button>
+            </div>
+            <div class="flex flex-wrap gap-1">
+              <button type="button" class="px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[10px] font-extrabold hover:border-black" onclick="openExternalSearch('adidas')">Oficial ↗</button>
+              <button type="button" class="px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[10px] font-extrabold hover:border-black" onclick="openExternalSearch('goat')">GOAT ↗</button>
+              <button type="button" class="px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[10px] font-extrabold hover:border-black" onclick="openExternalSearch('stockx')">StockX ↗</button>
+              <button type="button" class="px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[10px] font-extrabold hover:border-black" onclick="openExternalSearch('bing')">Bing ↗</button>
+              <button type="button" class="px-2.5 py-1 rounded-lg bg-[#d8ff3e] border border-black/15 text-[10px] font-extrabold" onclick="autoFetchWebImages()">⚡ Sugerencias</button>
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-2xl bg-[#faf9f6] border border-black/10 overflow-hidden">
+            <div class="flex gap-1.5">
+              <input id="smartUrlInput" type="text" placeholder="Pegar URL de imagen (directa o Google)…" class="flex-1 h-9 bg-white border border-black/15 rounded-xl px-3 text-xs font-medium outline-none focus:border-[#2952ff]" oninput="previewCandidateUrl(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();addUrlFromStudio();}">
+              <button type="button" class="btn btn-light !py-1.5 !px-2.5" onclick="pasteFromClipboard()" title="Pegar del portapapeles">📋</button>
+              <button type="button" class="btn btn-blue !py-1.5 !px-3" onclick="addUrlFromStudio()">＋</button>
+            </div>
+
+            <div id="urlLivePreview" class="hidden mt-2 p-2 bg-white rounded-xl border border-black/10 flex items-center gap-2.5 overflow-hidden">
+              <div class="w-11 h-11 rounded-lg bg-[#efeee8] p-1 flex-shrink-0 grid place-items-center overflow-hidden">
+                <img id="urlLiveImg" alt="Previsualización" class="w-full h-full object-contain mix-blend-multiply">
+              </div>
+              <div class="min-w-0 flex-1">
+                <div id="urlLiveStatus" class="text-[11px] font-extrabold text-emerald-700">Imagen lista</div>
+                <div id="urlLiveMeta" class="text-[10px] text-[#6e6d66] truncate"></div>
+              </div>
+              <button type="button" class="btn btn-acid !py-1 !px-2.5 !text-[10px]" onclick="addUrlFromStudio()">Usar</button>
+            </div>
+
+            <div class="flex gap-1.5 mt-2 pt-2 border-t border-black/10">
+              <button type="button" class="btn btn-light flex-1 !py-1.5 !text-[11px]" onclick="document.getElementById('galleryInput').click()">
+                📁 Subir archivos
+              </button>
+              <button type="button" class="btn btn-light !py-1.5 !text-[11px]" onclick="openBatchUrlModal()">
+                ☷ Varias URLs
+              </button>
+            </div>
+            <input id="galleryInput" type="file" accept="image/*" multiple hidden onchange="handleGalleryFiles(event)">
+          </div>
+
+          <div id="webSearchBox" class="hidden mt-2.5">
+            <div id="suggestionGrid" class="grid grid-cols-3 gap-2"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- STEP 03: PRODUCT SHEET -->
+      <section class="lg:col-span-7 panel min-w-0">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-[#d8ff3e] grid place-items-center font-display font-bold text-[11px]">03</span>
+            <h3 class="font-display font-bold text-lg">Datos del Par</h3>
+          </div>
+          <span id="formPreviewEan" class="hidden text-[10px] font-mono-code bg-black/5 px-2 py-0.5 rounded font-bold"></span>
+        </div>
+
+        <div class="flex items-center gap-3 p-2.5 rounded-2xl bg-[#f4f3ee] border border-black/10 mb-4 overflow-hidden">
+          <div class="w-14 h-14 rounded-xl bg-white p-1.5 flex-shrink-0 border border-black/5 grid place-items-center">
+            <img id="formPreview" alt="Vista previa" class="w-full h-full object-contain mix-blend-multiply">
+          </div>
+          <div class="min-w-0 flex-1">
+            <span class="eyebrow !text-[#2952ff]" id="formPreviewBrand">MARCA</span>
+            <h4 id="formPreviewModel" class="font-display font-bold text-base leading-tight truncate">MODELO</h4>
+            <p id="formPreviewSku" class="font-mono-code text-xs text-[#6e6d66]">SKU</p>
+          </div>
+          <button type="button" class="btn btn-light !py-1.5 !px-2.5 !text-[11px]" onclick="openExternalSearch('google')" title="Buscar fotos de este SKU + Modelo">
+            ⌕ Fotos SKU
+          </button>
+        </div>
+
+        <form id="productForm" onsubmit="saveProduct(event)">
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+            <div class="field sm:col-span-4">
+              <label for="sku"><span>Código SKU / ART *</span><span class="text-[#2952ff] font-mono-code">ID</span></label>
+              <input id="sku" required maxlength="40" autocomplete="off" placeholder="Ej. JQ6925, JI0278" class="font-mono-code uppercase">
+            </div>
+
+            <div class="field sm:col-span-4">
+              <label for="brand">Marca *</label>
+              <select id="brand" required>
+                <option value="Adidas">Adidas</option>
+                <option value="Nike">Nike</option>
+                <option value="Jordan">Jordan</option>
+                <option value="New Balance">New Balance</option>
+                <option value="Puma">Puma</option>
+                <option value="Asics">Asics</option>
+                <option value="Reebok">Reebok</option>
+                <option value="Converse">Converse</option>
+                <option value="Vans">Vans</option>
+                <option value="Otra marca">Otra marca</option>
+              </select>
+            </div>
+
+            <div class="field sm:col-span-4">
+              <label for="price">Precio Venta (S/) *</label>
+              <input id="price" type="number" required min="0" step="0.01" inputmode="decimal" placeholder="279.00" class="font-mono-code">
+            </div>
+
+            <div class="field sm:col-span-8">
+              <label for="model">Modelo Exacto *</label>
+              <input id="model" required maxlength="100" placeholder="Ej. ULTRARUN 5 TR W / TERREX TRACEFINDER" class="uppercase">
+            </div>
+
+            <div class="field sm:col-span-4">
+              <label for="category">Género · Categoría</label>
+              <input id="category" maxlength="90" placeholder="WOMEN · TRAIL RUNNING" class="uppercase">
+            </div>
+
+            <!-- Size Selector with Custom Fraction Creator & Per-Size Stock Quantities -->
+            <div class="field sm:col-span-12">
+              <label>
+                <span>Tallas Disponibles (EUR / FR) *</span>
+                <button type="button" class="text-[10px] text-[#2952ff] font-extrabold hover:underline" onclick="addCustomSizeChip()">＋ Añadir otra medida EUR</button>
+              </label>
+              <div class="flex flex-wrap gap-1.5" id="sizeSelector"></div>
+              <div id="sizeStockEditorWrap" class="hidden mt-2.5 p-2.5 rounded-2xl bg-[#f4f3ee] border border-black/10">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="eyebrow !text-[#121211]">CANTIDAD DE PARES POR TALLA (STOCK)</span>
+                  <span id="editorTotalPairsBadge" class="font-mono-code text-[10px] font-bold px-2 py-0.5 rounded bg-[#121211] text-[#d8ff3e]">0 pares</span>
+                </div>
+                <div id="sizeStockInputs" class="flex flex-wrap gap-2"></div>
+              </div>
+            </div>
+
+            <!-- Complete Equivalences Matrix from Tag -->
+            <div class="field sm:col-span-3">
+              <label for="sizeUs">Talla US</label>
+              <input id="sizeUs" placeholder="Ej. 6 1/2" class="font-mono-code">
+            </div>
+            <div class="field sm:col-span-3">
+              <label for="sizeUk">Talla UK / D</label>
+              <input id="sizeUk" placeholder="Ej. 5 1/2" class="font-mono-code">
+            </div>
+            <div class="field sm:col-span-3">
+              <label for="sizeCm">CM / MM / J</label>
+              <input id="sizeCm" placeholder="Ej. 235 MM (23.5 CM)" class="font-mono-code">
+            </div>
+            <div class="field sm:col-span-3">
+              <label for="eanCode">EAN / UPC</label>
+              <input id="eanCode" placeholder="4068812361586" class="font-mono-code">
+            </div>
+
+            <!-- Gallery Management Grid -->
+            <div class="field sm:col-span-12">
+              <label>
+                <span>Galería (<span id="galleryCount">0</span>)</span>
+                <span class="text-[10px] font-normal">Toca una foto para hacerla portada</span>
+              </label>
+              <div class="p-2.5 rounded-2xl bg-[#faf9f6] border border-black/10">
+                <div id="galleryGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-2"></div>
+                <div id="galleryEmptyHint" class="text-center py-4 text-[11px] text-[#6e6d66]">
+                  Sin fotos añadidas
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mt-5 pt-3.5 border-t border-black/10">
+            <button class="btn btn-dark flex-1 !py-3 !text-xs" type="submit" id="saveBtn">
+              Guardar en Catálogo ↗
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </section>
+
+  <section id="ordersView" class="hidden">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div>
+        <div class="eyebrow">BANDEJA DE ENTRADA · TIENDA PÚBLICA</div>
+        <h2 class="font-display font-bold text-xl sm:text-2xl tracking-tight">Solicitudes de Compra</h2>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-light !py-2" type="button" onclick="syncFromSheets(true)">↻ Actualizar Solicitudes</button>
+        <button class="btn btn-dark !py-2" type="button" onclick="switchView('catalog')">← Catálogo</button>
+      </div>
+    </div>
+
+    <div class="flex gap-1.5 overflow-x-auto pb-3" id="orderFilterChips">
+      <button class="chip active" data-ostatus="TODOS" onclick="setOrderFilter('TODOS')">Todas las solicitudes</button>
+      <button class="chip" data-ostatus="PENDIENTE" onclick="setOrderFilter('PENDIENTE')">Pendientes por atender</button>
+      <button class="chip" data-ostatus="CONFIRMADO" onclick="setOrderFilter('CONFIRMADO')">Ventas Confirmadas</button>
+    </div>
+
+    <div id="ordersList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"></div>
+
+    <div id="ordersEmpty" class="bg-white border border-dashed border-black/20 rounded-[24px] py-12 px-5 text-center my-4">
+      <div class="w-12 h-12 rounded-2xl bg-[#f4f3ee] mx-auto grid place-items-center font-display font-bold text-lg text-[#6e6d66]">📥</div>
+      <h3 class="font-display font-bold text-xl mt-3 mb-1">Sin solicitudes registradas</h3>
+      <p class="text-xs text-[#6e6d66] max-w-md mx-auto">Cuando un cliente arme su carrito en tu página pública y envíe su pedido, aparecerá aquí automáticamente sincronizado desde Google Sheets.</p>
+    </div>
+  </section>
+
+  <footer class="border-t border-black/10 mt-10 pt-4 flex justify-between text-[10px] text-[#6e6d66] no-print">
+    <div><strong class="text-[#121211]">KICKS STUDIO</strong></div>
+    <div>Archivo Local + Google Sheets</div>
+  </footer>
+
+  <section id="printLookbook" class="print-lookbook" aria-hidden="true"></section>
+</main>
+
+<nav class="md:hidden fixed z-50 left-0 right-0 bottom-0 px-3 py-2 bg-[#faf9f6]/95 border-t border-black/10 backdrop-blur-xl flex justify-around items-center no-print" style="padding-bottom: calc(8px + var(--safe-bottom));">
+  <button id="mobileCatalog" class="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-[#121211]" onclick="switchView('catalog')">
+    <span class="text-lg">▦</span>
+    <span>Catálogo (<b id="countMob">0</b>)</span>
+  </button>
+  <button class="w-12 h-11 rounded-2xl bg-[#d8ff3e] text-[#121211] font-bold text-xl shadow-md grid place-items-center border border-black/10" onclick="newProduct()" aria-label="Añadir par">＋</button>
+  <button id="mobileEditor" class="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-[#6e6d66]" onclick="switchView('editor')">
+    <span class="text-lg">⌗</span>
+    <span>Escáner</span>
+  </button>
+  <button id="mobileOrders" class="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-[#6e6d66] relative" onclick="switchView('orders')">
+    <span class="text-lg">📥</span>
+    <span>Pedidos (<b id="ordersBadgeMob">0</b>)</span>
+  </button>
+  <button class="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-[#6e6d66]" onclick="openSettings()">
+    <span class="text-lg">⚙</span>
+    <span>Ajustes</span>
+  </button>
+</nav>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detailOverlay" onclick="overlayClick(event,'detailOverlay')">
+  <div class="modal">
+    <div class="flex justify-between items-center p-5 border-b border-black/10 sticky top-0 bg-[#f4f3ee]/95 backdrop-blur-md z-10">
+      <div>
+        <div class="eyebrow">PRODUCT ARCHIVE</div>
+        <h3 class="font-display font-bold text-xl">Ficha del Par</h3>
+      </div>
+      <button class="w-9 h-9 rounded-xl bg-white border border-black/10 font-bold text-lg" onclick="closeModal('detailOverlay')">×</button>
+    </div>
+    <div class="p-5 sm:p-6" id="detailContent"></div>
+  </div>
+</div>
+
+<!-- RAW OCR INSPECTOR & MANUAL PARSER MODAL -->
+<div class="overlay" id="rawOcrOverlay" onclick="overlayClick(event,'rawOcrOverlay')">
+  <div class="modal !max-w-xl">
+    <div class="flex justify-between items-center p-5 border-b border-black/10">
+      <div>
+        <div class="eyebrow">INSPECTOR DE LECTURA OCR</div>
+        <h3 class="font-display font-bold text-xl">Texto interpretado de la etiqueta</h3>
+      </div>
+      <button class="w-9 h-9 rounded-xl bg-white border border-black/10 font-bold text-lg" onclick="closeModal('rawOcrOverlay')">×</button>
+    </div>
+    <div class="p-5">
+      <p class="text-xs text-[#6e6d66] mb-3">
+        Puedes corregir o pegar el texto de una etiqueta aquí y pulsar <strong>Re-interpretar texto</strong> para que el analizador actualice los campos automáticamente.
+      </p>
+      <textarea id="rawOcrTextarea" rows="9" class="w-full p-3 rounded-2xl bg-white border border-black/15 font-mono-code text-xs leading-relaxed outline-none focus:border-[#2952ff]"></textarea>
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" class="btn btn-light" onclick="closeModal('rawOcrOverlay')">Cerrar</button>
+        <button type="button" class="btn btn-blue" onclick="parseFromRawTextarea()">⚡ Re-interpretar texto</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BATCH URL & CUSTOM INPUT MODAL -->
+<div class="overlay" id="batchUrlOverlay" onclick="overlayClick(event,'batchUrlOverlay')">
+  <div class="modal !max-w-xl">
+    <div class="flex justify-between items-center p-5 border-b border-black/10">
+      <div>
+        <div class="eyebrow">GALERÍA AVANZADA</div>
+        <h3 class="font-display font-bold text-xl">Importar lote de URLs de imágenes</h3>
+      </div>
+      <button class="w-9 h-9 rounded-xl bg-white border border-black/10 font-bold text-lg" onclick="closeModal('batchUrlOverlay')">×</button>
+    </div>
+    <div class="p-5">
+      <p class="text-xs text-[#6e6d66] mb-3">
+        Pega una o varias URLs de imágenes (una por línea o separadas por espacios). También puedes pegar enlaces copiados de Google Imágenes; el sistema extraerá el parámetro <code>imgurl</code> automáticamente.
+      </p>
+      <textarea id="batchUrlTextarea" rows="6" placeholder="https://assets.adidas.com/images/...&#10;https://images.stockx.com/images/..." class="w-full p-3 rounded-2xl bg-white border border-black/15 font-mono-code text-xs leading-relaxed outline-none focus:border-[#2952ff]"></textarea>
+      <div class="flex justify-end gap-2 mt-4">
+        <button type="button" class="btn btn-light" onclick="closeModal('batchUrlOverlay')">Cancelar</button>
+        <button type="button" class="btn btn-dark" onclick="processBatchUrls()">＋ Importar todas las fotos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NON-BLOCKING CONFIRM / INPUT DIALOG MODAL -->
+<div class="overlay" id="dialogOverlay">
+  <div class="modal !max-w-md">
+    <div class="p-6">
+      <div class="eyebrow" id="dialogEyebrow">CONFIRMACIÓN</div>
+      <h3 id="dialogTitle" class="font-display font-bold text-xl mt-1">¿Estás seguro?</h3>
+      <p id="dialogMessage" class="text-xs text-[#6e6d66] mt-2 leading-relaxed"></p>
+      <div id="dialogInputWrap" class="hidden mt-3">
+        <input id="dialogInput" type="text" class="w-full h-11 bg-white border border-black/15 rounded-xl px-3 text-xs font-bold outline-none focus:border-[#2952ff]">
+      </div>
+      <div class="flex justify-end gap-2 mt-5">
+        <button type="button" class="btn btn-light" id="dialogCancelBtn">Cancelar</button>
+        <button type="button" class="btn btn-dark" id="dialogConfirmBtn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VISUAL WHATSAPP CARD MODAL (IMAGE GENERATOR) -->
+<div class="overlay" id="visualCardOverlay" onclick="overlayClick(event,'visualCardOverlay')">
+  <div class="modal !max-w-lg">
+    <div class="flex justify-between items-center p-5 border-b border-black/10 sticky top-0 bg-[#f4f3ee]/95 backdrop-blur-md z-10">
+      <div>
+        <div class="eyebrow">TARJETA OFICIAL KICKS STUDIO</div>
+        <h3 class="font-display font-bold text-xl" id="visualCardModalTitle">Ficha Visual para WhatsApp</h3>
+      </div>
+      <button class="w-9 h-9 rounded-xl bg-white border border-black/10 font-bold text-lg" onclick="closeModal('visualCardOverlay')">×</button>
+    </div>
+    <div class="p-5 grid gap-4">
+      <div class="rounded-2xl overflow-hidden border border-black/15 bg-[#121211] p-2 flex justify-center">
+        <img id="visualCardPreviewImg" alt="Tarjeta de confirmación" class="max-h-[440px] w-auto object-contain rounded-xl">
+      </div>
+      <p class="text-xs text-[#6e6d66] leading-relaxed text-center">
+        En móvil puedes pulsar <strong>Compartir Imagen a WhatsApp</strong> para adjuntar la tarjeta directamente, o descargarla y enviarla al chat del cliente.
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="btn btn-acid flex-1 !py-3" onclick="shareOrDownloadVisualCard()">
+          ↗ Compartir / Enviar Imagen a WhatsApp
+        </button>
+        <button type="button" class="btn btn-dark !py-3" onclick="downloadVisualCardPng()">
+          ↓ Descargar PNG
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settingsOverlay" onclick="overlayClick(event,'settingsOverlay')">
+  <div class="modal !max-w-xl">
+    <div class="flex justify-between items-center p-5 border-b border-black/10">
+      <div>
+        <div class="eyebrow">CONFIGURACIÓN</div>
+        <h3 class="font-display font-bold text-xl">Ajustes y Google Sheets</h3>
+      </div>
+      <button class="w-9 h-9 rounded-xl bg-white border border-black/10 font-bold text-lg" onclick="closeModal('settingsOverlay')">×</button>
+    </div>
+    <div class="p-5 grid gap-4">
+      <div class="field">
+        <label for="sheetsUrl">URL de Google Apps Script Web App (/exec)</label>
+        <input id="sheetsUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec" class="!bg-white">
+      </div>
+      <div class="field">
+        <label for="whatsapp">WhatsApp de Pedidos (con código de país)</label>
+        <input id="whatsapp" type="tel" placeholder="51999888777" class="!bg-white">
+      </div>
+      <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-950 leading-relaxed">
+        <strong>Sincronización Cloud:</strong> Los productos se guardan instantáneamente en tu navegador. Si configuras la URL de Google Apps Script, podrás respaldar y combinar todo tu catálogo e imágenes con Google Sheets y Google Drive.
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button class="btn btn-dark" onclick="saveSettings()">Guardar ajustes</button>
+        <button class="btn btn-light" onclick="syncFromSheets(true)">↻ Sincronizar ahora</button>
+        <button class="btn btn-light" onclick="copyAppsScript()">📋 Copiar código Apps Script v9</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+
+const DEFAULT_EUR_SIZES = [
+  '35', '35.5', '36', '36 2/3', '37', '37 1/3', '37.5',
+  '38', '38.5', '38 2/3', '39', '39 1/3', '39.5',
+  '40', '40.5', '40 2/3', '41', '41 1/3', '42', '42.5', '42 2/3',
+  '43', '43 1/3', '44', '44 2/3', '45', '46'
+];
+
+const STORAGE_KEY = 'kicks_peru_catalog_v1';
+const DELETED_SKUS_KEY = 'kicks_peru_deleted_skus_v1';
+const PENDING_SYNC_KEY = 'kicks_peru_pending_sync_v1';
+const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxPX3GxHo1YP_7LJ6p9jTxO4Wx0fmN4kR1uMxDMiKF4icQain_0FdGEx5SM9_a2WS3x/exec';
+
+let catalog = [];
+let deletedSkus = {}; // Tombstone map: { [SKU]: timestamp } so deleted items never resurrect from Sheets
+let pendingCloudSync = false;
+let activeBrand = 'Todos';
+let activeSize = 'Todas';
+let editingId = null;
+let selectedSizes = [];
+let selectedSizeStock = {}; // { [sizeEur]: quantity }
+let customSessionSizes = [];
+let gallery = [];
+let selectedProduct = null;
+let selectedDetailSize = '';
+let orders = [];
+let activeOrderFilter = 'TODOS';
+let lastGeneratedCardDataUrl = '';
+let lastGeneratedCardBlob = null;
+let lastGeneratedWhatsappUrl = '';
+let toastTimer = null;
+let searchDebounceTimer = null;
+let syncBusy = false;
+
+function debouncedRenderCatalog() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => renderCatalog(), 150);
+}
+
+function getProductTotalStock(p) {
+  if (!p) return 0;
+  if (p.sizeStock && typeof p.sizeStock === 'object') {
+    const vals = Object.values(p.sizeStock).map(v => Math.max(0, Math.floor(Number(v) || 0)));
+    if (vals.length) return vals.reduce((a, b) => a + b, 0);
+  }
+  return Array.isArray(p.sizes) ? p.sizes.length : 0;
+}
+
+function getSizeQty(p, size) {
+  if (!p || !size) return 0;
+  if (p.sizeStock && typeof p.sizeStock === 'object' && size in p.sizeStock) {
+    return Math.max(0, Math.floor(Number(p.sizeStock[size]) || 0));
+  }
+  return Array.isArray(p.sizes) && p.sizes.includes(size) ? 1 : 0;
+}
+
+function markPendingSync(isPending) {
+  pendingCloudSync = Boolean(isPending);
+  try { localStorage.setItem(PENDING_SYNC_KEY, pendingCloudSync ? '1' : ''); } catch (_) {}
+  const syncBtn = $('syncBtn');
+  if (syncBtn) {
+    syncBtn.innerHTML = pendingCloudSync
+      ? `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>↻</span><span class="hidden sm:inline">Sheets (Pendiente)</span>`
+      : `<span>↻</span><span class="hidden sm:inline">Sheets</span>`;
+  }
+}
+
+// Vision & OCR state
+let currentTagDataUrl = '';
+let currentTagRotation = 0;
+let autoIsolateTagCard = true;
+let lastRawOcrText = '';
+let lastOcrApplied = {};
+let lastOcrEur = '';
+
+function clearPreviousOcrValues() {
+  const map = { sku: 'sku', brand: 'brand', model: 'model', category: 'category', ean: 'eanCode', us: 'sizeUs', uk: 'sizeUk', cm: 'sizeCm' };
+  Object.entries(map).forEach(([key, id]) => {
+    const el = $(id);
+    if (el && lastOcrApplied[key] && el.value === lastOcrApplied[key]) el.value = '';
+  });
+  if (lastOcrEur && selectedSizes.includes(lastOcrEur)) {
+    selectedSizes = selectedSizes.filter(v => v !== lastOcrEur);
+    delete selectedSizeStock[lastOcrEur];
+    renderSizes();
+  }
+  lastOcrApplied = {}; lastOcrEur = '';
+}
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg) {
+  const t = $('toast');
+  t.innerHTML = `<span class="w-2 h-2 rounded-full bg-[#d8ff3e] flex-shrink-0"></span><span>${esc(msg)}</span>`;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3400);
+}
+
+// Non-blocking Dialog helper
+function showDialog({ eyebrow = 'CONFIRMACIÓN', title = 'Confirmar acción', message = '', inputPlaceholder = null, defaultValue = '', confirmText = 'Confirmar' }) {
+  return new Promise(resolve => {
+    $('dialogEyebrow').textContent = eyebrow;
+    $('dialogTitle').textContent = title;
+    $('dialogMessage').textContent = message;
+    const inputWrap = $('dialogInputWrap');
+    const inputEl = $('dialogInput');
+    if (inputPlaceholder !== null) {
+      inputWrap.classList.remove('hidden');
+      inputEl.placeholder = inputPlaceholder;
+      inputEl.value = defaultValue;
+    } else {
+      inputWrap.classList.add('hidden');
+    }
+    $('dialogConfirmBtn').textContent = confirmText;
+    $('dialogOverlay').classList.add('open');
+    if (inputPlaceholder !== null) setTimeout(() => inputEl.focus(), 60);
+
+    const cleanup = val => {
+      $('dialogOverlay').classList.remove('open');
+      $('dialogConfirmBtn').onclick = null;
+      $('dialogCancelBtn').onclick = null;
+      resolve(val);
+    };
+    $('dialogConfirmBtn').onclick = () => cleanup(inputPlaceholder !== null ? inputEl.value.trim() : true);
+    $('dialogCancelBtn').onclick = () => cleanup(null);
+  });
+}
+
+function placeholder(label = 'KICKS', sub = 'ARCHIVE') {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640"><rect width="640" height="640" rx="48" fill="#efeee8"/><path d="M145 360c50-10 78-48 102-108l54 22c18 49 58 66 112 79 36 9 71 22 82 47 11 26-7 48-35 48H178c-36 0-59-18-56-43 2-22 11-37 23-45z" fill="#d8ff3e" stroke="#121211" stroke-width="14" stroke-linejoin="round"/><path d="M251 286l50 45m-24-54 49 47m-18-62 48 44" stroke="#121211" stroke-width="11" stroke-linecap="round"/><text x="320" y="515" text-anchor="middle" font-family="Space Grotesk,Arial,sans-serif" font-size="28" font-weight="700" fill="#121211">${esc(label).slice(0, 22)}</text><text x="320" y="552" text-anchor="middle" font-family="DM Sans,Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="4" fill="#6e6d66">${esc(sub).slice(0, 24)}</text></svg>`;
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+function extractCleanImageUrl(raw) {
+  let s = String(raw || '').trim();
+  if (!s) return '';
+  if (/^data:image\/(png|jpe?g|webp|gif|svg\+xml);/i.test(s)) return s;
+
+  const srcMatch = s.match(/src=["']([^"']+)["']/i);
+  if (srcMatch) s = srcMatch[1];
+
+  try {
+    const u = new URL(s, location.href);
+    if (!['http:', 'https:'].includes(u.protocol)) return '';
+    const imgUrlParam = u.searchParams.get('imgurl') || u.searchParams.get('mediaurl');
+    if (imgUrlParam && /^https?:\/\//i.test(imgUrlParam)) return imgUrlParam;
+    const driveMatch = u.href.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (driveMatch) return `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
+    return u.href;
+  } catch {
+    return '';
+  }
+}
+
+function imgHtml(src, alt, cls = '') {
+  const clean = extractCleanImageUrl(src) || placeholder();
+  return `<img class="${cls}" src="${esc(clean)}" alt="${esc(alt || 'Zapatilla')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=placeholder('SIN VISTA','REVISA URL')">`;
+}
+
+function normalizeSizeToken(rawToken, isEur = false) {
+  if (!rawToken) return '';
+  let t = String(rawToken).trim().toUpperCase();
+  t = t.replace(/⅔/g, ' 2/3').replace(/⅓/g, ' 1/3').replace(/½/g, ' 1/2').replace(/¼/g, ' 1/4').replace(/¾/g, ' 3/4');
+  t = t.replace(/\b(\d{1,2})\s*%\b/g, '$1 2/3');
+  t = t.replace(/\b(\d{1,2})\s*2\s*[\/|1I]\s*[38]\b/g, '$1 2/3');
+  t = t.replace(/\b(\d{1,2})2\/[38]\b/g, '$1 2/3');
+  t = t.replace(/\b(\d{1,2})\s*1\s*[\/|1I]\s*[38]\b/g, '$1 1/3');
+  t = t.replace(/\b(\d{1,2})1\/[38]\b/g, '$1 1/3');
+  t = t.replace(/\b(\d{1,2})\s*1\s*[\/|1I]\s*2\b/g, '$1 1/2');
+  t = t.replace(/\b(\d{1,2})1\/2\b/g, '$1 1/2');
+  if (!isEur) {
+    t = t.replace(/^([4-9]|1[0-3])12$/, '$1.5');
+    t = t.replace(/^(\d{1,2})\s+1\/2$/, '$1.5');
+  } else {
+    t = t.replace(/^([34]\d)23$/, '$1 2/3');
+    t = t.replace(/^([34]\d)13$/, '$1 1/3');
+    t = t.replace(/^(\d{2})\.[67]$/, '$1 2/3').replace(/^(\d{2})\.3$/, '$1 1/3');
+    t = t.replace(/^(\d{2})\s+1\/2$/, '$1.5');
+  }
+  return t.replace(/,/g, '.').replace(/\s+/g, ' ').trim();
+}
+
+function parseSneakerLabel(rawText, zonalData = null) {
+  const result = {
+    raw: rawText,
+    sku: '',
+    brand: '',
+    model: '',
+    category: '',
+    gender: '',
+    ean: '',
+    po: '',
+    eur: '',
+    uk: '',
+    us: '',
+    cm: '',
+    confidence: 0
+  };
+
+  const combinedInput = [
+    zonalData?.headerText || '',
+    zonalData?.rightColText || '',
+    zonalData?.matrixText || '',
+    rawText || ''
+  ].join('\n');
+
+  if (!combinedInput.trim()) return result;
+
+  const stripMarginNoise = str => String(str || '')
+    .replace(/\r/g, '\n')
+    .replace(/C\s*H\s*A\s*N\s*D\s*E\s*A\s*N[\S]*/gi, ' ')
+    .replace(/P\s*O\s*#?\s*\d{6,12}/gi, ' ')
+    .replace(/[|¡!]/g, 'I')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'");
+
+  const cleanLines = stripMarginNoise(combinedInput)
+    .split(/\n+/)
+    .map(l => l.replace(/\s+/g, ' ').trim())
+    .filter(l => l.length > 0);
+
+  const upperLines = cleanLines.map(l => l.toUpperCase());
+  const fullUpper = upperLines.join('\n');
+
+  // BRAND
+  if (/\bADIDAS\b|A\s*D\s*I\s*D\s*A\s*S|\bULTRARUN\b|\bTERREX\b|\bORIGINALS\b|\bFORUM\s*2000\b|\bRESPONSE\s*RUNNER\b/i.test(fullUpper)) {
+    result.brand = 'Adidas';
+  } else if (/\bNIKE\b|\bSWOOSH\b|\bAIR\s*MAX\b|\bDUNK\b/i.test(fullUpper)) {
+    result.brand = 'Nike';
+  } else if (/\bJORDAN\b|\bJUMPMAN\b/i.test(fullUpper)) {
+    result.brand = 'Jordan';
+  } else if (/\bNEW\s*BALANCE\b/i.test(fullUpper)) {
+    result.brand = 'New Balance';
+  } else if (/\bPUMA\b/i.test(fullUpper)) {
+    result.brand = 'Puma';
+  } else if (/\bASICS\b/i.test(fullUpper)) {
+    result.brand = 'Asics';
+  } else if (/\bREEBOK\b/i.test(fullUpper)) {
+    result.brand = 'Reebok';
+  }
+
+  // EAN-13
+  const eanRegex = /\b([0-9]\s*[0-9]{5,6}\s*[0-9]{5,6}[0-9]?)\b/g;
+  let em;
+  while ((em = eanRegex.exec(fullUpper)) !== null) {
+    const digits = em[1].replace(/\D/g, '');
+    if (digits.length === 13 || digits.length === 12) {
+      result.ean = digits;
+      break;
+    }
+  }
+
+  // SKU
+  const badPrefixes = new Set(['AD', 'HE', 'IN', 'WO', 'UN', 'KI', 'RU', 'CO', 'TR', 'OR', 'EA', 'PO', 'CH', 'UM', 'EU', 'UK', 'US', 'MM']);
+  const skuCandidates = [];
+
+  const scanLinesForSku = (linesArr, boost = 0) => {
+    linesArr.forEach((line, idx) => {
+      const tokens = line.split(/[^A-Z0-9-]+/).filter(Boolean);
+      tokens.forEach(tok => {
+        if (tok.length === 6) {
+          let p1 = tok[0], p2 = tok[1], rest = tok.slice(2);
+          if (p1 === 'J' && p2 === '1') p2 = 'I';
+          if (p1 === 'J' && p2 === '0') p2 = 'Q';
+          const prefix = p1 + p2;
+          const digits = rest.replace(/O/g, '0').replace(/[IL]/g, '1').replace(/S/g, '5').replace(/B/g, '8');
+          if (/^[A-Z]{2}$/.test(prefix) && /^\d{4}$/.test(digits) && !badPrefixes.has(prefix)) {
+            if (prefix === 'UM' && line.includes('FORUM')) return;
+            let score = 25 + boost;
+            const ctx = linesArr.slice(Math.max(0, idx - 2), Math.min(linesArr.length, idx + 3)).join(' ');
+            if (/\b(SKU|ART(?:ICLE)?|ARTICLE NO|STYLE|ITEM)\b/.test(ctx)) score += 38;
+            if (/\b(WOMEN|UNISEX|KIDS|MEN)\b/.test(ctx)) score += 5;
+            if (/\b(EAN|UPC|EUR|UK|US|MM|MADE IN|INDONESIA|VIETNAM)\b/.test(ctx)) score -= 8;
+            if (line.trim() === tok) score += 12;
+            skuCandidates.push({ sku: prefix + digits, score });
+          }
+        }
+        if (/^[A-Z]{2}\d{4}-\d{3}$/.test(tok)) {
+          skuCandidates.push({ sku: tok, score: 45 + boost });
+        }
+      });
+    });
+  };
+
+  if (zonalData?.rightColText) {
+    const rightLines = stripMarginNoise(zonalData.rightColText).toUpperCase().split(/\n+/).map(s => s.trim()).filter(Boolean);
+    scanLinesForSku(rightLines, 25);
+  }
+  scanLinesForSku(upperLines, 0);
+
+  // Collapse duplicate detections across OCR zones, then refuse near-ties instead of guessing.
+  const skuScores = new Map();
+  skuCandidates.forEach(c => skuScores.set(c.sku, Math.max(skuScores.get(c.sku) || 0, c.score)));
+  const rankedSkus = [...skuScores.entries()].map(([sku, score]) => ({ sku, score })).sort((a, b) => b.score - a.score);
+  if (rankedSkus.length === 1 && rankedSkus[0].score >= 25) {
+    result.sku = rankedSkus[0].sku;
+  } else if (rankedSkus.length > 1 && rankedSkus[0].score >= 35 && rankedSkus[0].score - rankedSkus[1].score >= 12) {
+    result.sku = rankedSkus[0].sku;
+  }
+
+  // GENDER & CATEGORY
+  const genders = [];
+  if (/\bWOMEN\b|\bMUJER\b|\bWMNS\b/.test(fullUpper)) genders.push('WOMEN');
+  else if (/\bUNISEX\b/.test(fullUpper)) genders.push('UNISEX');
+  else if (/\bKIDS\b|\bJUNIOR\b/.test(fullUpper)) genders.push('KIDS');
+  else if (/\bMEN\b|\bHOMBRE\b/.test(fullUpper)) genders.push('MEN');
+
+  const cats = [];
+  if (/\bTRAIL\s*RUNNING\b/.test(fullUpper)) cats.push('TRAIL RUNNING');
+  else if (/\bRUNNING\b|\bCOURSE\s*A\s*PIED\b/.test(fullUpper)) cats.push('RUNNING');
+  if (/\bORIGINALS\b/.test(fullUpper)) cats.push('ORIGINALS');
+  if (/\bTERREX\b/.test(fullUpper) && !cats.includes('TRAIL RUNNING')) cats.push('OUTDOOR');
+  result.category = [...genders, ...cats].join(' • ');
+
+  // MODEL LINE EXTRACTION
+  const isNonModelLine = l => {
+    const t = l.trim();
+    if (t.length < 3) return true;
+    return /^(ADIDAS|NIKE|PUMA|REEBOK|NEW BALANCE|HECHO\b.*|MADE\b.*|INDONESIA|VIETNAM|CHINA|RUNNING|COURSE\b.*|TRAIL RUNNING|ORIGINALS|WOMEN|MEN|UNISEX|KIDS|EAN|700|D\s+UK.*|US\s+J.*)$/.test(t)
+      || new RegExp('^' + (result.sku || 'XXXXXX') + '$').test(t)
+      || /^\d[\d\s/.,½⅓⅔%-]*$/.test(t);
+  };
+
+  const findModelInLines = linesList => {
+    const bIdx = linesList.findIndex(l => /\bADIDAS\b|\bNIKE\b|\bPUMA\b/.test(l));
+    const oIdx = linesList.findIndex(l => /\bHECHO\b|\bMADE\b|\bINDONESIA\b|\bVIETNAM\b/.test(l));
+
+    if (bIdx >= 0) {
+      const limit = oIdx > bIdx ? oIdx : Math.min(linesList.length, bIdx + 3);
+      for (let i = bIdx + 1; i < limit; i++) {
+        const cleaned = linesList[i].replace(/\bADIDAS\b/g, '').trim();
+        if (!isNonModelLine(cleaned)) return cleaned;
+      }
+    }
+    if (oIdx > 0) {
+      for (let i = oIdx - 1; i >= 0; i--) {
+        const cleaned = linesList[i].replace(/\bADIDAS\b/g, '').trim();
+        if (!isNonModelLine(cleaned)) return cleaned;
+      }
+    }
+    return '';
+  };
+
+  let rawModel = '';
+  if (zonalData?.headerText) {
+    const hLines = stripMarginNoise(zonalData.headerText).toUpperCase().split(/\n+/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+    rawModel = findModelInLines(hLines);
+    if (!rawModel) {
+      const fallbackH = hLines.find(l => !isNonModelLine(l));
+      if (fallbackH) rawModel = fallbackH;
+    }
+  }
+  if (!rawModel) rawModel = findModelInLines(upperLines);
+
+  if (rawModel) {
+    result.model = rawModel
+      .replace(/\bADIDAS\b/g, '')
+      .replace(/([A-Z]{4,})(\d{3,4})/g, '$1 $2')
+      .replace(/[^A-Z0-9\s.-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Explicit unit/value pairs are more reliable than guessing a number elsewhere on the label.
+  const explicitEur = fullUpper.match(/\b(?:EUR|EURO|FR)\s*[:：-]?\s*(3[3-9]|4[0-9])(?:\s*(?:1\s*\/\s*3|2\s*\/\s*3|1\s*\/\s*2|[.,]\d|[⅓⅔½]))?\b/);
+  if (explicitEur) {
+    const value = explicitEur[0].replace(/^.*?\b(?:EUR|EURO|FR)\s*[:：-]?\s*/,'').trim();
+    result.eur = normalizeSizeToken(value, true);
+  }
+  const explicitUk = fullUpper.match(/\bUK\s*[:：-]?\s*(\d{1,2}(?:\s*(?:1\s*\/\s*2|[½]|[.,]5))?)\b/);
+  if (explicitUk) {
+    const n = parseFloat(explicitUk[1].replace(',', '.'));
+    if (n >= 2 && n <= 15) result.uk = normalizeSizeToken(explicitUk[1], false);
+  }
+  const explicitUs = fullUpper.match(/\bUS\s*[:：-]?\s*(\d{1,2}(?:\s*(?:1\s*\/\s*2|[½]|[.,]5))?)\b/);
+  if (explicitUs) {
+    const n = parseFloat(explicitUs[1].replace(',', '.'));
+    if (n >= 3 && n <= 16) result.us = normalizeSizeToken(explicitUs[1], false);
+  }
+
+  // SIZE MATRIX PARSER
+  const matrixSource = zonalData?.matrixText
+    ? stripMarginNoise(zonalData.matrixText).toUpperCase() + '\n' + fullUpper
+    : fullUpper;
+  const mLines = matrixSource.split(/\n+/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const sizeTokRe = /\b(\d{1,3}(?:\s*[12]\/[238]|\s*%|[\.,]\d|[½⅓⅔¼¾])?)\b/g;
+
+  for (let i = 0; i < mLines.length; i++) {
+    const line = mLines[i];
+
+    if (/\bEUR\b|\bEURO\b/.test(line)) {
+      for (let back = 1; back <= 2; back++) {
+        if (i - back < 0) break;
+        const valLine = mLines[i - back];
+        if (valLine.replace(/\D/g, '').length >= 10) continue;
+        const toks = [...valLine.matchAll(sizeTokRe)].map(m => m[1]);
+        if (toks.length >= 2) {
+          const eurCandidate = toks[toks.length - 1];
+          const eurNum = parseFloat(eurCandidate);
+          if (eurNum >= 33 && eurNum <= 49) {
+            result.eur = normalizeSizeToken(eurCandidate, true);
+            const ukCandidate = toks[toks.length - 2];
+            if (parseFloat(ukCandidate) >= 2 && parseFloat(ukCandidate) <= 15) {
+              result.uk = normalizeSizeToken(ukCandidate, false);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    if (/\bMM\b|\bUS\b/.test(line)) {
+      for (let back = 0; back <= 2; back++) {
+        if (i - back < 0) break;
+        const valLine = mLines[i - back];
+        if (valLine.replace(/\D/g, '').length >= 10) continue;
+        const toks = [...valLine.matchAll(sizeTokRe)].map(m => m[1]);
+
+        const mmToks = toks.filter(t => {
+          const n = parseInt(t, 10);
+          return /^\d{3}$/.test(t.trim()) && n >= 195 && n <= 315 && n !== 700;
+        });
+        if (mmToks.length > 0 && !result.cm) {
+          const mmVal = parseInt(mmToks[mmToks.length - 1], 10);
+          result.cm = `${(mmVal / 10).toFixed(1).replace(/\.0$/, '')} CM (${mmVal} MM)`;
+        }
+
+        if (toks.length >= 2 && !result.us) {
+          const usTok = normalizeSizeToken(toks[0], false);
+          const usNum = parseFloat(usTok);
+          if (usNum >= 3 && usNum <= 16 && !/^\d{3}$/.test(toks[0].trim())) {
+            result.us = usTok;
+          }
+        }
+      }
+    }
+  }
+
+  if (!result.uk) {
+    const idx700 = upperLines.findIndex(l => /\b700\b/.test(l));
+    if (idx700 > 0) {
+      const lineAbove = upperLines[idx700 - 1];
+      const ukM = lineAbove.match(/\b(\d{1,2}(?:\s*1\/2|[½]|\.5)?)\b/);
+      if (ukM && parseFloat(ukM[1]) >= 3 && parseFloat(ukM[1]) <= 14) {
+        result.uk = normalizeSizeToken(ukM[1], false);
+      }
+    }
+  }
+
+  if (!result.cm) {
+    const mmM = [...matrixSource.matchAll(/\b(2[1-9][05]|30[05])\b/g)].map(m => parseInt(m[1], 10));
+    if (mmM.length > 0) {
+      const mmVal = mmM[mmM.length - 1];
+      result.cm = `${(mmVal / 10).toFixed(1).replace(/\.0$/, '')} CM (${mmVal} MM)`;
+    }
+  }
+
+  // No SKU-specific size defaults: missing sizes stay blank until the label actually supports them.
+  result.confidence = [result.sku, result.brand, result.model, result.eur, result.ean, result.cm].filter(Boolean).length;
+  return result;
+}
+
+async function preprocessTagImage(sourceDataUrl, rotationDeg = 0, isolateCard = true) {
+  const img = new Image();
+  img.src = sourceDataUrl;
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = () => reject(new Error('No se pudo abrir la imagen'));
+  });
+
+  const rad = (rotationDeg * Math.PI) / 180;
+  const sin = Math.abs(Math.sin(rad)), cos = Math.abs(Math.cos(rad));
+  const rotW = Math.round(img.width * cos + img.height * sin);
+  const rotH = Math.round(img.width * sin + img.height * cos);
+
+  const workScale = Math.min(1.5, 1400 / Math.max(rotW, rotH));
+  const w = Math.max(1, Math.round(rotW * workScale));
+  const h = Math.max(1, Math.round(rotH * workScale));
+
+  const srcCanvas = document.createElement('canvas');
+  srcCanvas.width = w;
+  srcCanvas.height = h;
+  const sCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
+  sCtx.translate(w / 2, h / 2);
+  sCtx.rotate(rad);
+  sCtx.drawImage(img, (-img.width * workScale) / 2, (-img.height * workScale) / 2, img.width * workScale, img.height * workScale);
+
+  const srcData = sCtx.getImageData(0, 0, w, h);
+  const pix = srcData.data;
+
+  let corners = [
+    { x: 0, y: 0 },
+    { x: w - 1, y: 0 },
+    { x: w - 1, y: h - 1 },
+    { x: 0, y: h - 1 }
+  ];
+  let detectedCorners = false;
+
+  if (isolateCard) {
+    const mw = 160, mh = 160;
+    const mask = new Uint8Array(mw * mh);
+
+    for (let y = 0; y < mh; y++) {
+      const py = Math.min(h - 1, Math.floor((y + 0.5) * (h / mh)));
+      for (let x = 0; x < mw; x++) {
+        const px = Math.min(w - 1, Math.floor((x + 0.5) * (w / mw)));
+        const i = (py * w + px) * 4;
+        const r = pix[i], g = pix[i + 1], b = pix[i + 2];
+        const maxC = Math.max(r, g, b), minC = Math.min(r, g, b);
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        const sat = maxC === 0 ? 0 : (maxC - minC) / maxC;
+        if (lum > 148 && sat < 0.26) {
+          mask[y * mw + x] = 1;
+        }
+      }
+    }
+
+    // Cierre morfológico ligero: une letras, sombras y pequeños huecos de la etiqueta
+    // antes de buscar el contorno, como hacen los escáneres de documentos.
+    const dilated = new Uint8Array(mw * mh);
+    for (let y = 1; y < mh - 1; y++) for (let x = 1; x < mw - 1; x++) {
+      let hit = 0;
+      for (let dy = -1; dy <= 1 && !hit; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (mask[(y + dy) * mw + x + dx]) { hit = 1; break; }
+      }
+      dilated[y * mw + x] = hit;
+    }
+    const closed = new Uint8Array(mw * mh);
+    for (let y = 1; y < mh - 1; y++) for (let x = 1; x < mw - 1; x++) {
+      let all = 1;
+      for (let dy = -1; dy <= 1 && all; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dilated[(y + dy) * mw + x + dx]) { all = 0; break; }
+      }
+      closed[y * mw + x] = all;
+    }
+    for (let i = 0; i < mask.length; i++) mask[i] = closed[i];
+
+    const visited = new Uint8Array(mw * mh);
+    let bestBlob = [];
+    const dirs = [-1, 0, 1, 0, -1];
+
+    for (let y = 0; y < mh; y++) {
+      for (let x = 0; x < mw; x++) {
+        const startIdx = y * mw + x;
+        if (!mask[startIdx] || visited[startIdx]) continue;
+        const queue = [startIdx];
+        visited[startIdx] = 1;
+        const blob = [];
+        let head = 0;
+        while (head < queue.length) {
+          const curr = queue[head++];
+          blob.push(curr);
+          const cy = Math.floor(curr / mw), cx = curr % mw;
+          for (let d = 0; d < 4; d++) {
+            const nx = cx + dirs[d], ny = cy + dirs[d + 1];
+            if (nx >= 0 && nx < mw && ny >= 0 && ny < mh) {
+              const nIdx = ny * mw + nx;
+              if (mask[nIdx] && !visited[nIdx]) {
+                visited[nIdx] = 1;
+                queue.push(nIdx);
+              }
+            }
+          }
+        }
+        if (blob.length > bestBlob.length) bestBlob = blob;
+      }
+    }
+
+    if (bestBlob.length > (mw * mh * 0.07)) {
+      let bx0 = mw, by0 = mh, bx1 = 0, by1 = 0;
+      for (const idx of bestBlob) {
+        const xx = idx % mw, yy = Math.floor(idx / mw);
+        bx0 = Math.min(bx0, xx); by0 = Math.min(by0, yy);
+        bx1 = Math.max(bx1, xx); by1 = Math.max(by1, yy);
+      }
+      // Rejecta detecciones pequeñas o estrechas: es preferible OCR sin recorte
+      // a cortar la etiqueta por una zona blanca del fondo.
+      const plausibleBox = (bx1 - bx0) >= mw * 0.22 && (by1 - by0) >= mh * 0.18;
+      let tl = null, tr = null, br = null, bl = null;
+      let minSum = Infinity, maxSum = -Infinity, minDiff = Infinity, maxDiff = -Infinity;
+
+      for (let k = 0; k < bestBlob.length; k++) {
+        const idx = bestBlob[k];
+        const gx = (idx % mw) / mw;
+        const gy = Math.floor(idx / mw) / mh;
+        const sum = gx + gy;
+        const diff = gx - gy;
+        if (sum < minSum) { minSum = sum; tl = { x: gx * w, y: gy * h }; }
+        if (sum > maxSum) { maxSum = sum; br = { x: gx * w, y: gy * h }; }
+        if (diff > maxDiff) { maxDiff = diff; tr = { x: gx * w, y: gy * h }; }
+        if (diff < minDiff) { minDiff = diff; bl = { x: gx * w, y: gy * h }; }
+      }
+
+      if (plausibleBox && tl && tr && br && bl) {
+        // Expande ligeramente los cuatro lados para no cortar letras junto al borde.
+        const lerpPt = (pA, pB, ratio) => ({
+          x: pA.x + (pB.x - pA.x) * ratio,
+          y: pA.y + (pB.y - pA.y) * ratio
+        });
+        const tlIn = lerpPt(tl, tr, 0.032);
+        const trIn = lerpPt(tr, tl, 0.032);
+        const blIn = lerpPt(bl, br, 0.032);
+        const brIn = lerpPt(br, bl, 0.032);
+
+        const tlOut = lerpPt(tlIn, blIn, -0.024);
+        const trOut = lerpPt(trIn, brIn, -0.024);
+        const blOut = lerpPt(blIn, tlIn, -0.024);
+        const brOut = lerpPt(brIn, trIn, -0.024);
+
+        corners = [
+          { x: Math.max(0, tlOut.x), y: Math.max(0, tlOut.y) },
+          { x: Math.min(w - 1, trOut.x), y: Math.max(0, trOut.y) },
+          { x: Math.min(w - 1, brOut.x), y: Math.min(h - 1, brOut.y) },
+          { x: Math.max(0, blOut.x), y: Math.min(h - 1, blOut.y) }
+        ];
+        detectedCorners = true;
+      }
+    }
+  }
+
+  // Resolve the selected quadrilateral before measuring it. Keeping this above
+  // edgeWidth/edgeHeight avoids a temporal-dead-zone ReferenceError that stopped OCR.
+  const [cTL, cTR, cBR, cBL] = corners;
+  const edgeWidth = (Math.hypot(cTR.x - cTL.x, cTR.y - cTL.y) + Math.hypot(cBR.x - cBL.x, cBR.y - cBL.y)) / 2;
+  const edgeHeight = (Math.hypot(cBL.x - cTL.x, cBL.y - cTL.y) + Math.hypot(cBR.x - cTR.x, cBR.y - cTR.y)) / 2;
+  const outW = 900;
+  // Preserve the real label aspect ratio instead of forcing every tag into 3:4.
+  const outH = Math.max(900, Math.min(1500, Math.round(outW * (edgeHeight / Math.max(1, edgeWidth)))));
+  const padX = 32;
+  const padY = 32;
+  const innerW = outW - padX * 2;
+  const innerH = outH - padY * 2;
+  const outCanvas = document.createElement('canvas');
+  outCanvas.width = outW;
+  outCanvas.height = outH;
+  const oCtx = outCanvas.getContext('2d', { willReadFrequently: true });
+  const outImg = oCtx.createImageData(outW, outH);
+  const dst = outImg.data;
+  dst.fill(255);
+
+  let lumSum = 0, lumCount = 0;
+  for (let sy = 0.15; sy <= 0.85; sy += 0.05) {
+    for (let sx = 0.15; sx <= 0.85; sx += 0.05) {
+      const topX = cTL.x + (cTR.x - cTL.x) * sx;
+      const topY = cTL.y + (cTR.y - cTL.y) * sx;
+      const botX = cBL.x + (cBR.x - cBL.x) * sx;
+      const botY = cBL.y + (cBR.y - cBL.y) * sy;
+      const px = Math.min(w - 1, Math.max(0, Math.round(topX + (botX - topX) * sy)));
+      const py = Math.min(h - 1, Math.max(0, Math.round(topY + (botY - topY) * sy)));
+      const idx = (py * w + px) * 4;
+      lumSum += 0.299 * pix[idx] + 0.587 * pix[idx + 1] + 0.114 * pix[idx + 2];
+      lumCount++;
+    }
+  }
+  const paperLum = lumCount > 0 ? lumSum / lumCount : 185;
+  const threshold = Math.max(105, Math.min(175, paperLum * 0.76));
+
+  for (let y = 0; y < innerH; y++) {
+    const v = y / (innerH - 1);
+    for (let x = 0; x < innerW; x++) {
+      const u = x / (innerW - 1);
+      const sx = (1 - u) * (1 - v) * cTL.x + u * (1 - v) * cTR.x + u * v * cBR.x + (1 - u) * v * cBL.x;
+      const sy = (1 - u) * (1 - v) * cTL.y + u * (1 - v) * cTR.y + u * v * cBR.y + (1 - u) * v * cBL.y;
+      const px = Math.min(w - 1, Math.max(0, Math.round(sx)));
+      const py = Math.min(h - 1, Math.max(0, Math.round(sy)));
+      const sIdx = (py * w + px) * 4;
+      const lum = 0.299 * pix[sIdx] + 0.587 * pix[sIdx + 1] + 0.114 * pix[sIdx + 2];
+
+      let val = (lum - threshold) * 2.5 + 130;
+      if (val > 215) val = 255;
+      if (val < 60) val = 0;
+      val = Math.max(0, Math.min(255, val));
+
+      const dIdx = ((y + padY) * outW + (x + padX)) * 4;
+      dst[dIdx] = dst[dIdx + 1] = dst[dIdx + 2] = val;
+      dst[dIdx + 3] = 255;
+    }
+  }
+  oCtx.putImageData(outImg, 0, 0);
+
+  const cropZone = (rx, ry, rw, rh) => {
+    const zPad = 22;
+    const cw = Math.round(outW * rw);
+    const ch = Math.round(outH * rh);
+    const zc = document.createElement('canvas');
+    zc.width = cw + zPad * 2;
+    zc.height = ch + zPad * 2;
+    const zCtx = zc.getContext('2d');
+    zCtx.fillStyle = '#ffffff';
+    zCtx.fillRect(0, 0, zc.width, zc.height);
+    zCtx.drawImage(
+      outCanvas,
+      Math.max(0, Math.round(outW * rx)),
+      Math.max(0, Math.round(outH * ry)),
+      Math.min(outW, cw),
+      Math.min(outH, ch),
+      zPad,
+      zPad,
+      cw,
+      ch
+    );
+    return zc.toDataURL('image/jpeg', 0.94);
+  };
+
+  return {
+    ocrDataUrl: outCanvas.toDataURL('image/jpeg', 0.96),
+    // Segundo camino OCR sin perspectiva/umbral agresivo: rescata etiquetas grises,
+    // con tinta tenue o con detección de esquinas imperfecta.
+    fallbackOcrDataUrl: srcCanvas.toDataURL('image/jpeg', 0.96),
+    detectedCorners,
+    headerZoneUrl: cropZone(0.00, 0.06, 1.0, 0.40),
+    rightColZoneUrl: cropZone(0.45, 0.30, 0.54, 0.46),
+    matrixZoneUrl: cropZone(0.00, 0.65, 1.0, 0.35)
+  };
+}
+
+async function runTagOcrPipeline() {
+  try {
+    $('ocrStatus').textContent = 'Detectando esquinas, recortando y aplicando zoom…';
+    $('ocrProgressWrap').classList.remove('hidden');
+    $('ocrProgressBar').style.width = '15%';
+
+    const processed = await preprocessTagImage(currentTagDataUrl, currentTagRotation, autoIsolateTagCard);
+
+    $('cornerBadge').classList.toggle('hidden', !processed.detectedCorners);
+    if (!processed.detectedCorners) {
+      $('ocrStatus').textContent = 'No detecté las cuatro esquinas con seguridad; usaré la foto completa y una lectura alternativa…';
+    }
+
+    $('tagDrop').innerHTML = `
+      <div class="relative w-full flex flex-col items-center">
+        <img src="${processed.ocrDataUrl}" alt="Etiqueta recortada con zoom" class="max-h-[195px] w-auto object-contain rounded-xl border border-black/15 shadow-sm bg-white">
+        <div id="activeScanBeam" class="scan-beam"></div>
+      </div>
+    `;
+
+    if (!window.Tesseract) {
+      $('ocrStatus').textContent = 'Cargando motor OCR, reintenta en 2s…';
+      $('ocrProgressWrap').classList.add('hidden');
+      return;
+    }
+
+    $('ocrStatus').textContent = 'Leyendo cabecera (Marca y Modelo)…';
+    $('ocrProgressBar').style.width = '35%';
+    const headerRes = await Tesseract.recognize(processed.headerZoneUrl, 'eng');
+
+    $('ocrStatus').textContent = 'Leyendo columna derecha (Código SKU y Género)…';
+    $('ocrProgressBar').style.width = '60%';
+    const rightColRes = await Tesseract.recognize(processed.rightColZoneUrl, 'eng');
+
+    $('ocrStatus').textContent = 'Leyendo matriz inferior de tallas (EUR / US / UK / MM)…';
+    $('ocrProgressBar').style.width = '82%';
+    const matrixRes = await Tesseract.recognize(processed.matrixZoneUrl, 'eng');
+
+    $('ocrStatus').textContent = 'Verificando lectura con la foto original…';
+    $('ocrProgressBar').style.width = '91%';
+    const fullRes = await Tesseract.recognize(processed.ocrDataUrl, 'eng');
+    const fallbackRes = await Tesseract.recognize(processed.fallbackOcrDataUrl, 'eng');
+    $('ocrProgressBar').style.width = '100%';
+
+    const beam = $('activeScanBeam');
+    if (beam) beam.remove();
+    $('ocrProgressWrap').classList.add('hidden');
+    $('ocrPercent').textContent = '';
+
+    const zonalData = {
+      headerText: headerRes?.data?.text || '',
+      rightColText: rightColRes?.data?.text || '',
+      matrixText: matrixRes?.data?.text || ''
+    };
+
+    lastRawOcrText = [
+      '=== CABECERA (MARCA / MODELO) ===',
+      zonalData.headerText.trim(),
+      '=== COLUMNA SKU ===',
+      zonalData.rightColText.trim(),
+      '=== MATRIZ DE TALLAS ===',
+      zonalData.matrixText.trim(),
+      '=== LECTURA COMPLETA (ETIQUETA RECTIFICADA) ===',
+      (fullRes?.data?.text || '').trim(),
+      '=== VERIFICACIÓN FOTO ORIGINAL ===',
+      (fallbackRes?.data?.text || '').trim()
+    ].join('\n');
+
+    $('rawOcrTextarea').value = lastRawOcrText;
+
+    // Combina ambas lecturas. El parser puede encontrar SKU/tallas aunque una versión
+    // pierda algún carácter al enderezar o aumentar el contraste.
+    const combinedText = [fullRes?.data?.text || '', fallbackRes?.data?.text || ''].join('\n');
+    const parsed = parseSneakerLabel(combinedText, zonalData);
+    applyParsedLabelToForm(parsed);
+  } catch (err) {
+    console.error('OCR Error:', err);
+    $('ocrProgressWrap').classList.add('hidden');
+    $('ocrStatus').textContent = 'Error al procesar imagen.';
+    toast('No se pudo completar el escaneo');
+  }
+}
+
+function toggleAutoTagIsolation() {
+  autoIsolateTagCard = !autoIsolateTagCard;
+  $('toggleCropModeBtn').textContent = `Zoom Esquinas: ${autoIsolateTagCard ? 'ON' : 'OFF'}`;
+  if (currentTagDataUrl) runTagOcrPipeline();
+}
+
+async function handleTagFile(e) {
+  const f = e.target.files?.[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    clearPreviousOcrValues();
+    $('ocrStatus').textContent = 'Cargando imagen de alta resolución…';
+    currentTagRotation = 0;
+    currentTagDataUrl = await compressImage(f, 1600, 0.92);
+    $('ocrToolsBar').classList.remove('hidden');
+    await runTagOcrPipeline();
+  } catch (err) {
+    toast(err.message || 'No se pudo cargar la imagen de la etiqueta');
+  }
+}
+
+function rotateTagImage(deltaDeg) {
+  if (!currentTagDataUrl) return;
+  currentTagRotation = (currentTagRotation + deltaDeg + 360) % 360;
+  runTagOcrPipeline();
+}
+
+function reRunOcrAnalysis() {
+  if (!currentTagDataUrl) {
+    toast('Primero sube o toma una foto de la etiqueta.');
+    return;
+  }
+  runTagOcrPipeline();
+}
+
+function applyParsedLabelToForm(parsed) {
+  lastOcrApplied = {};
+  lastOcrEur = '';
+  if (parsed.sku) { $('sku').value = parsed.sku; lastOcrApplied['sku'] = $('sku').value; }
+  if (parsed.brand) { $('brand').value = parsed.brand; lastOcrApplied['brand'] = $('brand').value; }
+  if (parsed.model) { $('model').value = parsed.model; lastOcrApplied['model'] = $('model').value; }
+  if (parsed.category) { $('category').value = parsed.category; lastOcrApplied['category'] = $('category').value; }
+  if (parsed.ean) { $('eanCode').value = parsed.ean; lastOcrApplied['ean'] = $('eanCode').value; }
+  if (parsed.us) { $('sizeUs').value = parsed.us; lastOcrApplied['us'] = $('sizeUs').value; }
+  if (parsed.uk) { $('sizeUk').value = parsed.uk; lastOcrApplied['uk'] = $('sizeUk').value; }
+  if (parsed.cm) { $('sizeCm').value = parsed.cm; lastOcrApplied['cm'] = $('sizeCm').value; }
+
+  if (parsed.eur) {
+    const cleanEur = parsed.eur;
+    const alreadySelectedBeforeOcr = selectedSizes.includes(cleanEur);
+    if (!DEFAULT_EUR_SIZES.includes(cleanEur) && !customSessionSizes.includes(cleanEur)) {
+      customSessionSizes.push(cleanEur);
+    }
+    if (!alreadySelectedBeforeOcr) {
+      selectedSizes = [cleanEur];
+      selectedSizeStock = { [cleanEur]: selectedSizeStock[cleanEur] || 1 };
+      lastOcrEur = cleanEur;
+    } else {
+      selectedSizeStock[cleanEur] = Math.max(1, selectedSizeStock[cleanEur] || 1);
+      lastOcrEur = '';
+    }
+    renderSizes();
+  }
+
+  const fastQuery = [parsed.brand, parsed.model, parsed.sku].filter(Boolean).join(' ').trim();
+  if (fastQuery) {
+    $('imageQuery').value = fastQuery;
+    autoFetchWebImages();
+  }
+
+  updateFormPreview();
+
+  const badges = [
+    parsed.sku && { k: 'SKU', v: parsed.sku, hi: true },
+    parsed.brand && { k: 'Marca', v: parsed.brand },
+    parsed.model && { k: 'Modelo', v: parsed.model, hi: true },
+    parsed.eur && { k: 'EUR', v: parsed.eur, hi: true },
+    parsed.us && { k: 'US', v: parsed.us },
+    parsed.uk && { k: 'UK', v: parsed.uk },
+    parsed.cm && { k: 'MM/CM', v: parsed.cm },
+    parsed.category && { k: 'Cat', v: parsed.category },
+    parsed.ean && { k: 'EAN', v: parsed.ean }
+  ].filter(Boolean);
+
+  $('ocrReportBox').classList.remove('hidden');
+  if (badges.length > 0) {
+    const needsReview = !parsed.sku || !parsed.model || !parsed.eur;
+    $('ocrStatus').textContent = `${needsReview ? 'Revisar lectura · ' : '✓ Lectura completa · '}${badges.length} datos extraídos`;
+    $('ocrStatus').style.color = needsReview ? '#b45309' : '#0d9488';
+    $('ocrBadges').innerHTML = badges.map(b =>
+      `<span class="px-2 py-0.5 rounded-md ${b.hi ? 'bg-[#d8ff3e] border-black/20' : 'bg-[#f4f3ee] border-black/10'} border text-[11px] font-bold">
+        <b class="text-[#6e6d66] uppercase text-[9px] mr-1">${esc(b.k)}:</b>${esc(b.v)}
+      </span>`
+    ).join('');
+    toast(`Detectado: ${[parsed.sku, parsed.model, parsed.eur && ('EUR ' + parsed.eur)].filter(Boolean).join(' · ')}`);
+  } else {
+    $('ocrStatus').textContent = 'Sin lectura clara. Gira la etiqueta, mejora la luz o edita el texto OCR.';
+    $('ocrStatus').style.color = '#b45309';
+    $('ocrBadges').innerHTML = '';
+  }
+}
+
+function toggleRawOcrModal() {
+  $('rawOcrTextarea').value = lastRawOcrText;
+  $('rawOcrOverlay').classList.add('open');
+}
+
+function parseFromRawTextarea() {
+  lastRawOcrText = $('rawOcrTextarea').value;
+  const parsed = parseSneakerLabel(lastRawOcrText);
+  applyParsedLabelToForm(parsed);
+  closeModal('rawOcrOverlay');
+}
+
+function getSearchQuery() {
+  const manual = $('imageQuery').value.trim();
+  if (manual) return manual;
+  return [$('brand').value, $('model').value.trim(), $('sku').value.trim()].filter(Boolean).join(' ').trim();
+}
+
+function openExternalSearch(engine) {
+  const q = getSearchQuery();
+  const skuOnly = $('sku').value.trim();
+  if (!q && !skuOnly) {
+    toast('Escribe primero un SKU o nombre de modelo para buscar sus fotos.');
+    $('imageQuery').focus();
+    return;
+  }
+  let url = '';
+  switch (engine) {
+    case 'google':
+      url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q + ' sneaker shoe')}`;
+      break;
+    case 'goat':
+      url = `https://www.goat.com/search?query=${encodeURIComponent(skuOnly || q)}`;
+      break;
+    case 'stockx':
+      url = `https://stockx.com/search?s=${encodeURIComponent(skuOnly || q)}`;
+      break;
+    case 'adidas':
+      url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('site:adidas.com ' + (skuOnly || q))}`;
+      break;
+    case 'bing':
+      url = `https://www.bing.com/images/search?q=${encodeURIComponent(q + ' official product photo')}`;
+      break;
+  }
+  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+let previewUrlTimer = null;
+function previewCandidateUrl(rawInput) {
+  clearTimeout(previewUrlTimer);
+  const box = $('urlLivePreview');
+  const trimmed = String(rawInput || '').trim();
+  if (!trimmed) {
+    box.classList.add('hidden');
+    return;
+  }
+  const tokens = trimmed.split(/[\s,]+/).map(extractCleanImageUrl).filter(Boolean);
+  if (!tokens.length) {
+    box.classList.remove('hidden');
+    $('urlLiveImg').src = placeholder('URL', 'INVÁLIDA');
+    $('urlLiveStatus').textContent = 'Formato de URL no reconocido';
+    $('urlLiveStatus').className = 'text-[11px] font-extrabold text-rose-600';
+    $('urlLiveMeta').textContent = 'Asegúrate de que empiece con https:// o sea un enlace de imagen';
+    return;
+  }
+
+  previewUrlTimer = setTimeout(() => {
+    const firstUrl = tokens[0];
+    box.classList.remove('hidden');
+    const imgEl = $('urlLiveImg');
+    $('urlLiveStatus').textContent = 'Verificando imagen remota…';
+    $('urlLiveStatus').className = 'text-[11px] font-extrabold text-amber-600';
+    $('urlLiveMeta').textContent = tokens.length > 1 ? `${tokens.length} URLs detectadas listas para importar` : firstUrl;
+
+    imgEl.onload = () => {
+      $('urlLiveStatus').textContent = tokens.length > 1 ? `✓ ${tokens.length} imágenes listas` : `✓ Imagen verificada (${imgEl.naturalWidth}×${imgEl.naturalHeight}px)`;
+      $('urlLiveStatus').className = 'text-[11px] font-extrabold text-emerald-700';
+    };
+    imgEl.onerror = () => {
+      $('urlLiveStatus').textContent = 'Enlace web detectado (puede requerir abrir la imagen original)';
+      $('urlLiveStatus').className = 'text-[11px] font-extrabold text-amber-700';
+      imgEl.src = placeholder('LINK', 'EXTERNO');
+    };
+    imgEl.src = firstUrl;
+  }, 180);
+}
+
+function addUrlFromStudio() {
+  const input = $('smartUrlInput');
+  const raw = input.value.trim();
+  if (!raw) {
+    toast('Pega primero el enlace de una imagen en el campo URL.');
+    input.focus();
+    return;
+  }
+  const urls = raw.split(/[\s\n,]+/).map(extractCleanImageUrl).filter(Boolean);
+  if (!urls.length) {
+    toast('No se encontró una URL http(s) válida.');
+    return;
+  }
+  let added = 0;
+  urls.forEach(u => {
+    if (!gallery.includes(u)) {
+      gallery.push(u);
+      added++;
+    }
+  });
+  input.value = '';
+  $('urlLivePreview').classList.add('hidden');
+  renderGallery();
+  toast(added > 0 ? `${added} ${added === 1 ? 'imagen añadida' : 'imágenes añadidas'} a la galería` : 'La imagen ya estaba en la galería');
+}
+
+async function pasteFromClipboard() {
+  try {
+    if (navigator.clipboard?.readText) {
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim()) {
+        $('smartUrlInput').value = text.trim();
+        previewCandidateUrl(text.trim());
+        toast('Enlace pegado desde el portapapeles');
+        return;
+      }
+    }
+  } catch (_) {}
+  $('smartUrlInput').focus();
+  toast('Mantén presionado el campo URL y elige "Pegar"');
+}
+
+function openBatchUrlModal() {
+  $('batchUrlTextarea').value = '';
+  $('batchUrlOverlay').classList.add('open');
+}
+
+function processBatchUrls() {
+  const raw = $('batchUrlTextarea').value;
+  const urls = raw.split(/[\s\n,]+/).map(extractCleanImageUrl).filter(Boolean);
+  if (!urls.length) {
+    toast('No se detectaron URLs válidas en el lote.');
+    return;
+  }
+  let added = 0;
+  urls.forEach(u => {
+    if (!gallery.includes(u)) {
+      gallery.push(u);
+      added++;
+    }
+  });
+  renderGallery();
+  closeModal('batchUrlOverlay');
+  toast(`${added} fotos añadidas por lote`);
+}
+
+async function autoFetchWebImages() {
+  const q = getSearchQuery();
+  if (!q) {
+    toast('Escribe un SKU o modelo para buscar referencias visuales.');
+    return;
+  }
+  const box = $('webSearchBox');
+  const grid = $('suggestionGrid');
+  box.classList.remove('hidden');
+  grid.innerHTML = `<div class="col-span-3 py-6 text-center text-xs text-[#6e6d66]">Buscando referencias visuales para "${esc(q)}"…</div>`;
+
+  try {
+    const localMatches = catalog
+      .filter(p => [p.sku, p.model, p.brand].join(' ').toUpperCase().includes(q.toUpperCase()))
+      .flatMap(p => p.images.map(url => ({ url, title: `${p.sku} · ${p.model}` })));
+
+    const apiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q + ' shoe OR sneaker')}&gsrlimit=6&prop=imageinfo&iiprop=url&iiurlwidth=500&format=json&origin=*`;
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+    const pages = data?.query?.pages ? Object.values(data.query.pages) : [];
+    const wikiMatches = pages
+      .map(p => ({
+        url: p.imageinfo?.[0]?.thumburl || p.imageinfo?.[0]?.url || '',
+        title: (p.title || '').replace(/^File:/i, '').slice(0, 28)
+      }))
+      .filter(x => x.url && /\.(jpe?g|png|webp)$/i.test(x.url));
+
+    const combined = [...localMatches, ...wikiMatches].slice(0, 6);
+    if (!combined.length) {
+      grid.innerHTML = `
+        <div class="col-span-3 p-4 rounded-xl bg-[#f4f3ee] text-xs text-[#6e6d66] leading-relaxed">
+          No se encontraron fotos libres directas para <strong>${esc(q)}</strong>. Pulsa arriba en <strong>Google ↗</strong>, <strong>GOAT ↗</strong> o <strong>StockX ↗</strong>, copia la dirección de la imagen y pégala en el campo URL.
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = combined.map(item => `
+      <button type="button" class="p-2 rounded-xl bg-[#f8f7f3] border border-black/10 hover:border-[#2952ff] text-left transition group" onclick="addSuggestedImage('${esc(item.url)}')">
+        <div class="aspect-square rounded-lg bg-white p-1.5 grid place-items-center overflow-hidden">
+          ${imgHtml(item.url, item.title, 'w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition')}
+        </div>
+        <strong class="block text-[10px] mt-1.5 truncate">${esc(item.title)}</strong>
+        <span class="text-[9px] text-[#2952ff] font-extrabold">＋ Usar foto</span>
+      </button>
+    `).join('');
+  } catch (err) {
+    grid.innerHTML = `<div class="col-span-3 p-3 rounded-xl bg-[#f4f3ee] text-xs text-[#6e6d66]">Usa los botones de Google Imágenes, GOAT o StockX y pega la URL de la foto.</div>`;
+  }
+}
+
+function addSuggestedImage(url) {
+  const clean = extractCleanImageUrl(url);
+  if (!clean) return;
+  if (!gallery.includes(clean)) gallery.push(clean);
+  renderGallery();
+  toast('Imagen añadida a la galería');
+}
+
+async function compressImage(file, maxDim = 1200, quality = 0.82) {
+  if (!file || !file.type.startsWith('image/')) throw new Error('El archivo seleccionado no es una imagen.');
+  if (file.size > 20 * 1024 * 1024) throw new Error('La imagen supera el límite de 20 MB.');
+  const data = await new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('No se pudo leer el archivo'));
+    r.readAsDataURL(file);
+  });
+  const img = new Image();
+  img.src = data;
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = () => reject(new Error('Formato de imagen no soportado'));
+  });
+  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(img.width * scale));
+  canvas.height = Math.max(1, Math.round(img.height * scale));
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+async function handleGalleryFiles(e) {
+  const files = [...(e.target.files || [])];
+  e.target.value = '';
+  if (!files.length) return;
+  for (const f of files.slice(0, 10)) {
+    try {
+      const data = await compressImage(f, 1100, 0.82);
+      if (!gallery.includes(data)) gallery.push(data);
+    } catch (err) {
+      toast(err.message);
+    }
+  }
+  renderGallery();
+  toast('Fotos añadidas a la galería del producto');
+}
+
+function normalize(item) {
+  if (!item || typeof item !== 'object') return null;
+  const sku = String(item.sku || '').trim().toUpperCase().replace(/[^A-Z0-9._-]/g, '').slice(0, 40);
+  if (!sku) return null;
+
+  const sizeStock = {};
+  if (item.sizeStock && typeof item.sizeStock === 'object') {
+    Object.entries(item.sizeStock).forEach(([k, v]) => {
+      const s = String(k || '').trim();
+      const q = Math.max(0, Math.floor(Number(v) || 0));
+      if (s && /^[A-Za-z0-9 .\/-]{1,16}$/.test(s) && q > 0) {
+        sizeStock[s] = q;
+      }
+    });
+  }
+
+  let rawSizes = Array.isArray(item.sizes) ? item.sizes : String(item.sizes || '').split(',');
+  rawSizes.forEach(entry => {
+    const rawStr = String(entry || '').trim();
+    if (!rawStr) return;
+    const parts = rawStr.split(':');
+    const s = String(parts[0] || '').trim();
+    if (!s || !/^[A-Za-z0-9 .\/-]{1,16}$/.test(s)) return;
+    if (!(s in sizeStock)) {
+      const q = parts.length > 1 ? Math.max(1, Math.floor(Number(parts[1]) || 1)) : 1;
+      sizeStock[s] = q;
+    }
+  });
+
+  const sizes = Object.keys(sizeStock).sort((a, b) => parseFloat(a) - parseFloat(b));
+  const sourceImages = Array.isArray(item.images) ? item.images : (Array.isArray(item.gallery) ? item.gallery : []);
+  const primarySource = item.image || item.primaryImage || '';
+  const images = [...new Set([primarySource, ...sourceImages]
+    .map(x => extractCleanImageUrl(String(x || '').trim()))
+    .filter(Boolean))];
+  const rawPrice = typeof item.price === 'string' ? Number(item.price.replace(/[^0-9.-]/g, '')) : Number(item.price);
+  const price = Number.isFinite(rawPrice) && rawPrice >= 0 ? rawPrice : 0;
+  return {
+    id: String(item.id || ('ks-' + sku)).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 100) || ('ks-' + sku),
+    sku,
+    brand: String(item.brand || 'Adidas').slice(0, 50),
+    model: String(item.model || '').slice(0, 100),
+    category: String(item.category || '').slice(0, 90),
+    price,
+    sizes,
+    sizeStock,
+    equivalence: String(item.equivalence || ''),
+    ean: String(item.ean || ''),
+    image: images[0] || extractCleanImageUrl(item.image) || '',
+    images,
+    updatedAt: item.updatedAt || Date.now()
+  };
+}
+
+function readStorage() {
+  try {
+    const rawDeleted = JSON.parse(localStorage.getItem(DELETED_SKUS_KEY) || '{}');
+    deletedSkus = (rawDeleted && typeof rawDeleted === 'object') ? rawDeleted : {};
+  } catch (_) {
+    deletedSkus = {};
+  }
+  try {
+    pendingCloudSync = Boolean(localStorage.getItem(PENDING_SYNC_KEY));
+    markPendingSync(pendingCloudSync);
+  } catch (_) {}
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    catalog = Array.isArray(raw) ? raw.map(normalize).filter(Boolean) : [];
+  } catch (e) {
+    catalog = [];
+    toast('Error al leer almacenamiento local.');
+  }
+  updateCounts();
+}
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(catalog));
+    localStorage.setItem(DELETED_SKUS_KEY, JSON.stringify(deletedSkus));
+    updateCounts();
+    $('catalogSyncLabel').textContent = pendingCloudSync
+      ? 'Guardado local · Pendiente de sincronizar con Sheets'
+      : 'Guardado localmente en este dispositivo';
+    return true;
+  } catch (e) {
+    toast('Memoria local llena. Exporta un backup JSON.');
+    return false;
+  }
+}
+
+function updateCounts() {
+  const modelCount = catalog.length;
+  const totalPairs = catalog.reduce((acc, p) => acc + getProductTotalStock(p), 0);
+  ['countDesk', 'countMob'].forEach(id => { if ($(id)) $(id).textContent = modelCount; });
+  if ($('heroCount')) $('heroCount').textContent = totalPairs || modelCount;
+  $('heroBrands').textContent = new Set(catalog.map(x => x.brand)).size;
+  const totalVal = catalog.reduce((acc, p) => acc + (Number(p.price) || 0) * Math.max(1, getProductTotalStock(p)), 0);
+  $('heroTotalValue').textContent = 'S/ ' + totalVal.toLocaleString('es-PE', { maximumFractionDigits: 0 });
+}
+
+function setBrand(b) {
+  activeBrand = b;
+  document.querySelectorAll('[data-brand]').forEach(x => x.classList.toggle('active', x.dataset.brand === b));
+  renderCatalog();
+}
+
+function setSize(s) {
+  activeSize = s;
+  renderCatalog();
+}
+
+function renderCatalog() {
+  updateCounts();
+  const q = $('catalogSearch').value.trim().toLowerCase();
+  const sortMode = $('catalogSort')?.value || 'recent';
+
+  const allSizes = new Set(catalog.flatMap(p => p.sizes));
+  const sortedSizes = Array.from(allSizes).sort((a, b) => parseFloat(a) - parseFloat(b));
+  $('sizeChips').innerHTML = ['Todas', ...sortedSizes].map(s =>
+    `<button class="chip ${activeSize === s ? 'active' : ''}" onclick="setSize('${esc(s)}')">${s === 'Todas' ? 'Tallas: Todas' : 'EUR ' + esc(s)}</button>`
+  ).join('');
+
+  let list = catalog.filter(p =>
+    (activeBrand === 'Todos' || p.brand.toLowerCase() === activeBrand.toLowerCase()) &&
+    (activeSize === 'Todas' || p.sizes.includes(activeSize)) &&
+    (!q || [p.sku, p.model, p.brand, p.category, p.ean, p.equivalence].join(' ').toLowerCase().includes(q))
+  );
+
+  list.sort((a, b) => {
+    if (sortMode === 'model') return a.model.localeCompare(b.model);
+    if (sortMode === 'priceAsc') return a.price - b.price;
+    if (sortMode === 'priceDesc') return b.price - a.price;
+    if (sortMode === 'sku') return a.sku.localeCompare(b.sku);
+    return (b.updatedAt || 0) - (a.updatedAt || 0);
+  });
+
+  const totalFilteredUnits = list.reduce((acc, p) => acc + getProductTotalStock(p), 0);
+  $('catalogResultCount').textContent = `${list.length} ${list.length === 1 ? 'modelo' : 'modelos'} · ${totalFilteredUnits} ${totalFilteredUnits === 1 ? 'par' : 'pares'}${q ? ' filtrados' : ''}`;
+
+  $('catalogGrid').innerHTML = list.map(p => {
+    const totalUnits = getProductTotalStock(p);
+    const sizeSummary = p.sizes.slice(0, 2).map(s => {
+      const qStock = getSizeQty(p, s);
+      return qStock > 1 ? `${s} (${qStock})` : s;
+    }).join(' · ');
+    return `
+    <article class="product-card" onclick="openDetail('${esc(p.id)}')">
+      <div class="product-photo">
+        ${imgHtml(p.image, p.model)}
+        <span class="absolute top-3 left-3 bg-white/95 backdrop-blur px-2.5 py-1 rounded-lg font-mono-code font-bold text-[10px] shadow-sm border border-black/5">${esc(p.sku)}</span>
+        <span class="absolute bottom-2.5 right-2.5 bg-[#121211]/90 text-[#d8ff3e] px-2 py-0.5 rounded-lg font-mono-code text-[10px] font-bold">${totalUnits} ${totalUnits === 1 ? 'PAR' : 'PARES'}</span>
+        ${p.images.length > 1 ? `<span class="absolute top-3 right-3 bg-[#121211]/80 text-white px-2 py-0.5 rounded-lg text-[10px] font-extrabold">▧ ${p.images.length}</span>` : ''}
+      </div>
+      <div class="p-4 flex-1 flex flex-col justify-between">
+        <div>
+          <div class="text-[10px] font-extrabold tracking-widest uppercase text-[#6e6d66] truncate">${esc(p.brand)}${p.category ? ' · ' + esc(p.category) : ''}</div>
+          <h3 class="font-display font-bold text-base sm:text-lg leading-tight uppercase mt-1 mb-2 line-clamp-2">${esc(p.model || 'Modelo sin título')}</h3>
+        </div>
+        <div class="pt-3 border-t border-black/10 flex items-end justify-between gap-2">
+          <div class="font-display font-bold text-lg sm:text-xl leading-none">
+            <small class="text-[10px] font-sans font-bold text-[#6e6d66]">S/</small> ${p.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div class="font-mono-code text-[10px] font-bold text-[#6e6d66] text-right">
+            ${p.sizes.length ? `EUR ${esc(sizeSummary)}${p.sizes.length > 2 ? ' +' + (p.sizes.length - 2) : ''}` : 'SIN STOCK'}
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+  }).join('');
+
+  $('catalogEmpty').classList.toggle('hidden', list.length > 0);
+  $('catalogGrid').classList.toggle('hidden', list.length === 0);
+}
+
+function switchView(view) {
+  const isCat = view === 'catalog';
+  const isEd = view === 'editor';
+  const isOrd = view === 'orders';
+
+  $('catalogView').classList.toggle('hidden', !isCat);
+  $('heroSection').classList.toggle('hidden', !isCat);
+  $('editorView').classList.toggle('hidden', !isEd);
+  if ($('ordersView')) $('ordersView').classList.toggle('hidden', !isOrd);
+
+  const activeNavCls = 'px-4 py-2 rounded-xl text-xs font-extrabold transition bg-white text-[#121211] shadow-sm';
+  const idleNavCls = 'px-4 py-2 rounded-xl text-xs font-extrabold transition text-[#6e6d66] hover:text-[#121211]';
+  $('navCatalog').className = isCat ? activeNavCls : idleNavCls;
+  $('navEditor').className = isEd ? activeNavCls : idleNavCls;
+  if ($('navOrders')) $('navOrders').className = isOrd ? activeNavCls : idleNavCls;
+
+  $('mobileCatalog').className = `flex flex-col items-center gap-0.5 text-[10px] font-extrabold ${isCat ? 'text-[#121211]' : 'text-[#6e6d66]'}`;
+  $('mobileEditor').className = `flex flex-col items-center gap-0.5 text-[10px] font-extrabold ${isEd ? 'text-[#121211]' : 'text-[#6e6d66]'}`;
+  if ($('mobileOrders')) $('mobileOrders').className = `flex flex-col items-center gap-0.5 text-[10px] font-extrabold ${isOrd ? 'text-[#121211]' : 'text-[#6e6d66]'}`;
+
+  if (isCat) renderCatalog();
+  if (isOrd) renderOrders();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearSearch() {
+  $('catalogSearch').value = '';
+  renderCatalog();
+  $('catalogSearch').focus();
+}
+
+function newProduct() {
+  resetForm();
+  switchView('editor');
+}
+
+function resetForm() {
+  editingId = null;
+  selectedSizes = [];
+  selectedSizeStock = {};
+  gallery = [];
+  currentTagDataUrl = '';
+  lastRawOcrText = '';
+  $('productForm').reset();
+  $('editorHeading').textContent = 'Nuevo Par';
+  $('saveBtn').textContent = 'Guardar en Catálogo ↗';
+  $('ocrToolsBar').classList.add('hidden');
+  $('ocrReportBox').classList.add('hidden');
+  $('cornerBadge').classList.add('hidden');
+  $('webSearchBox').classList.add('hidden');
+  $('urlLivePreview').classList.add('hidden');
+  $('smartUrlInput').value = '';
+  $('imageQuery').value = '';
+  $('ocrStatus').textContent = 'Listo para escanear';
+  $('tagDrop').innerHTML = `
+    <div class="text-2xl mb-1">⌗</div>
+    <strong class="text-xs">Toca o arrastra la foto de la etiqueta</strong>
+    <span class="text-[11px] text-[#6e6d66] mt-0.5">Detecta esquinas, recorta, hace zoom y extrae SKU, modelo y tallas</span>
+  `;
+  renderSizes();
+  renderGallery();
+  updateFormPreview();
+}
+
+function renderSizes() {
+  const all = [...new Set([...DEFAULT_EUR_SIZES, ...customSessionSizes, ...selectedSizes])];
+  $('sizeSelector').innerHTML = all.map(s => {
+    const isSel = selectedSizes.includes(s);
+    const qty = selectedSizeStock[s] || 1;
+    return `<button type="button" class="size-btn ${isSel ? 'selected' : ''}" onclick="toggleSize('${esc(s)}')">${esc(s)}${isSel ? ` · ${qty}` : ''}</button>`;
+  }).join('');
+  renderSizeStockInputs();
+}
+
+function renderSizeStockInputs() {
+  const wrap = $('sizeStockEditorWrap');
+  const container = $('sizeStockInputs');
+  const badge = $('editorTotalPairsBadge');
+  if (!wrap || !container) return;
+
+  if (!selectedSizes.length) {
+    wrap.classList.add('hidden');
+    container.innerHTML = '';
+    if (badge) badge.textContent = '0 pares';
+    return;
+  }
+
+  wrap.classList.remove('hidden');
+  const sorted = [...selectedSizes].sort((a, b) => parseFloat(a) - parseFloat(b));
+  let totalPairs = 0;
+
+  container.innerHTML = sorted.map(s => {
+    const qty = Math.max(1, Math.floor(Number(selectedSizeStock[s]) || 1));
+    selectedSizeStock[s] = qty;
+    totalPairs += qty;
+    return `
+      <div class="flex items-center gap-1.5 bg-white border border-black/10 rounded-xl px-2.5 py-1.5 shadow-sm">
+        <span class="font-display font-bold text-xs mr-1">EUR ${esc(s)}</span>
+        <button type="button" class="w-6 h-6 rounded-lg bg-[#f4f3ee] hover:bg-black/10 font-mono-code font-bold text-xs grid place-items-center" onclick="adjustEditorSizeStock('${esc(s)}', -1)" title="Restar 1 par">−</button>
+        <input type="number" min="1" max="999" value="${qty}" class="!w-12 !h-7 !px-1 text-center font-mono-code text-xs font-bold !bg-[#faf9f6] !rounded-lg" onchange="setEditorSizeStock('${esc(s)}', this.value)">
+        <button type="button" class="w-6 h-6 rounded-lg bg-[#d8ff3e] hover:opacity-90 font-mono-code font-bold text-xs grid place-items-center border border-black/10" onclick="adjustEditorSizeStock('${esc(s)}', 1)" title="Sumar 1 par">＋</button>
+      </div>
+    `;
+  }).join('');
+
+  if (badge) badge.textContent = `${totalPairs} ${totalPairs === 1 ? 'par en total' : 'pares en total'}`;
+}
+
+function adjustEditorSizeStock(size, delta) {
+  const current = Math.max(1, Math.floor(Number(selectedSizeStock[size]) || 1));
+  const next = current + delta;
+  if (next <= 0) {
+    selectedSizes = selectedSizes.filter(x => x !== size);
+    delete selectedSizeStock[size];
+  } else {
+    selectedSizeStock[size] = Math.min(999, next);
+  }
+  renderSizes();
+}
+
+function setEditorSizeStock(size, rawVal) {
+  const val = Math.floor(Number(rawVal) || 0);
+  if (val <= 0) {
+    selectedSizes = selectedSizes.filter(x => x !== size);
+    delete selectedSizeStock[size];
+  } else {
+    selectedSizeStock[size] = Math.min(999, val);
+  }
+  renderSizes();
+}
+
+function toggleSize(s) {
+  if (selectedSizes.includes(s)) {
+    selectedSizes = selectedSizes.filter(x => x !== s);
+    delete selectedSizeStock[s];
+  } else {
+    selectedSizes = [...selectedSizes, s];
+    selectedSizeStock[s] = selectedSizeStock[s] || 1;
+  }
+  renderSizes();
+}
+
+async function addCustomSizeChip() {
+  const val = await showDialog({
+    eyebrow: 'TALLA PERSONALIZADA',
+    title: 'Añadir medida EUR',
+    message: 'Ingresa la talla europea (ej. 39 1/3, 40 2/3, 47.5):',
+    inputPlaceholder: 'Ej. 41 1/3',
+    confirmText: 'Añadir talla'
+  });
+  if (!val) return;
+  const normalized = normalizeSizeToken(val, true);
+  if (!normalized) return;
+  if (!customSessionSizes.includes(normalized)) customSessionSizes.push(normalized);
+  if (!selectedSizes.includes(normalized)) selectedSizes.push(normalized);
+  selectedSizeStock[normalized] = selectedSizeStock[normalized] || 1;
+  renderSizes();
+}
+
+function updateFormPreview() {
+  const brand = $('brand').value || 'KICKS';
+  const sku = $('sku').value.trim().toUpperCase() || 'SKU';
+  const model = $('model').value.trim().toUpperCase() || 'MODELO';
+  const ean = $('eanCode').value.trim();
+
+  $('formPreview').src = extractCleanImageUrl(gallery[0]) || placeholder(brand, sku);
+  $('formPreviewBrand').textContent = brand.toUpperCase();
+  $('formPreviewModel').textContent = model;
+  $('formPreviewSku').textContent = sku;
+
+  const autoQ = [brand, $('model').value.trim().toUpperCase(), $('sku').value.trim().toUpperCase()].filter(Boolean).join(' ').trim();
+  if (autoQ) $('imageQuery').value = autoQ;
+
+  if (ean) {
+    $('formPreviewEan').textContent = `EAN ${ean}`;
+    $('formPreviewEan').classList.remove('hidden');
+  } else {
+    $('formPreviewEan').classList.add('hidden');
+  }
+}
+
+function renderGallery() {
+  const grid = $('galleryGrid');
+  const emptyHint = $('galleryEmptyHint');
+  $('galleryCount').textContent = `${gallery.length} ${gallery.length === 1 ? 'foto' : 'fotos'}`;
+
+  if (!gallery.length) {
+    grid.innerHTML = '';
+    emptyHint.classList.remove('hidden');
+    updateFormPreview();
+    return;
+  }
+  emptyHint.classList.add('hidden');
+  grid.innerHTML = gallery.map((src, i) => `
+    <div class="aspect-square rounded-xl bg-white border-2 ${i === 0 ? 'border-[#2952ff]' : 'border-black/10'} relative overflow-hidden cursor-pointer group p-1.5" onclick="makePrimary(${i})" title="${i === 0 ? 'Portada actual' : 'Toca para convertir en portada'}">
+      ${imgHtml(src, 'Foto ' + (i + 1), 'w-full h-full object-contain mix-blend-multiply')}
+      <span class="absolute left-1.5 bottom-1.5 px-1.5 py-0.5 rounded bg-[#121211]/85 text-[#d8ff3e] font-mono-code text-[9px] font-bold">
+        ${i === 0 ? 'PORTADA' : '#' + (i + 1)}
+      </span>
+      <button type="button" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-lg bg-rose-600 text-white text-xs font-bold grid place-items-center opacity-90 hover:opacity-100" onclick="event.stopPropagation();removeImage(${i})" aria-label="Eliminar">×</button>
+    </div>
+  `).join('');
+  updateFormPreview();
+}
+
+function makePrimary(i) {
+  if (i <= 0 || i >= gallery.length) return;
+  const [picked] = gallery.splice(i, 1);
+  gallery.unshift(picked);
+  renderGallery();
+  toast('Imagen establecida como portada');
+}
+
+function removeImage(i) {
+  gallery.splice(i, 1);
+  renderGallery();
+}
+
+function fillForm(p) {
+  editingId = p.id;
+  selectedSizes = [...p.sizes];
+  selectedSizeStock = {};
+  p.sizes.forEach(s => {
+    selectedSizeStock[s] = getSizeQty(p, s) || 1;
+  });
+  gallery = [...p.images];
+  $('sku').value = p.sku;
+  $('brand').value = p.brand;
+  $('model').value = p.model;
+  $('category').value = p.category || '';
+  $('price').value = p.price;
+  $('eanCode').value = p.ean || '';
+
+  $('sizeUs').value = '';
+  $('sizeUk').value = '';
+  $('sizeCm').value = '';
+  if (p.equivalence) {
+    const usM = p.equivalence.match(/US\s+([^·]+)/i);
+    const ukM = p.equivalence.match(/UK\s+([^·]+)/i);
+    const cmM = p.equivalence.match(/(\d+(?:\.\d+)?\s*CM[^·]*|\d{3}\s*MM)/i);
+    if (usM) $('sizeUs').value = usM[1].trim();
+    if (ukM) $('sizeUk').value = ukM[1].trim();
+    if (cmM) $('sizeCm').value = cmM[1].trim();
+  }
+
+  $('editorHeading').textContent = `Editar Par · ${p.sku}`;
+  $('saveBtn').textContent = 'Guardar Cambios ↗';
+  $('imageQuery').value = `${p.brand} ${p.model} ${p.sku}`.trim();
+  renderSizes();
+  renderGallery();
+  updateFormPreview();
+}
+
+async function saveProduct(e) {
+  e.preventDefault();
+  const sku = $('sku').value.trim().toUpperCase().replace(/\s+/g, '');
+  const brand = $('brand').value;
+  const model = $('model').value.trim().toUpperCase();
+  const category = $('category').value.trim().toUpperCase();
+  const price = Number($('price').value);
+  const ean = $('eanCode').value.trim();
+
+  if (!sku || !model || !Number.isFinite(price) || price < 0) {
+    toast('Completa el código SKU, nombre del modelo y un precio válido.');
+    return;
+  }
+  if (!selectedSizes.length) {
+    toast('Selecciona al menos una talla EUR.');
+    return;
+  }
+
+  const equivParts = [
+    $('sizeUs').value.trim() ? `US ${$('sizeUs').value.trim()}` : '',
+    $('sizeUk').value.trim() ? `UK ${$('sizeUk').value.trim()}` : '',
+    $('sizeCm').value.trim() ? $('sizeCm').value.trim() : '',
+    ean ? `EAN ${ean}` : ''
+  ].filter(Boolean);
+
+  const cleanSizeStock = {};
+  selectedSizes.forEach(s => {
+    cleanSizeStock[s] = Math.max(1, Math.floor(Number(selectedSizeStock[s]) || 1));
+  });
+  const sortedSizes = Object.keys(cleanSizeStock).sort((a, b) => parseFloat(a) - parseFloat(b));
+
+  const images = [...new Set(gallery.map(x => extractCleanImageUrl(String(x || '').trim())).filter(Boolean))];
+  const item = {
+    id: editingId || ('ks-' + sku),
+    sku,
+    brand,
+    model,
+    category,
+    price,
+    sizes: sortedSizes,
+    sizeStock: cleanSizeStock,
+    equivalence: equivParts.join(' · '),
+    ean,
+    image: images[0] || '',
+    images,
+    updatedAt: Date.now()
+  };
+
+  const oldIdx = catalog.findIndex(x => x.id === editingId);
+  const dupIdx = catalog.findIndex(x => x.sku === sku && x.id !== editingId);
+
+  if (dupIdx >= 0) {
+    const existing = catalog[dupIdx];
+    const ok = await showDialog({
+      eyebrow: 'SKU EXISTENTE EN CATÁLOGO',
+      title: `El SKU ${sku} ya está registrado`,
+      message: 'Si estás escaneando otro par del mismo modelo, se sumarán las cantidades de stock a las tallas existentes y se conservarán las fotos.',
+      confirmText: 'Sumar al stock existente'
+    });
+    if (!ok) return;
+    const mergedStock = { ...(existing.sizeStock || {}) };
+    existing.sizes.forEach(s => { if (!(s in mergedStock)) mergedStock[s] = 1; });
+    sortedSizes.forEach(s => {
+      mergedStock[s] = (mergedStock[s] || 0) + (cleanSizeStock[s] || 1);
+    });
+    item.id = existing.id;
+    item.sizeStock = mergedStock;
+    item.sizes = Object.keys(mergedStock).sort((a, b) => parseFloat(a) - parseFloat(b));
+    item.images = [...new Set([...images, ...(existing.images || [])])];
+    item.image = item.images[0] || existing.image || '';
+    catalog[dupIdx] = item;
+    if (oldIdx >= 0 && oldIdx !== dupIdx) catalog.splice(oldIdx, 1);
+  } else if (oldIdx >= 0) {
+    catalog[oldIdx] = item;
+  } else {
+    catalog.unshift(item);
+  }
+
+  if (deletedSkus[sku]) {
+    delete deletedSkus[sku];
+  }
+
+  markPendingSync(true);
+  persist();
+  renderCatalog();
+  switchView('catalog');
+  toast(`Par ${sku} guardado (${getProductTotalStock(item)} ${getProductTotalStock(item) === 1 ? 'par' : 'pares'} en stock)`);
+  
+  const gasUrl = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  if (gasUrl) {
+    const synced = await pushCatalogToSheets(false);
+    if (synced) toast(`Par ${sku} sincronizado y verificado en Google Sheets`);
+    else toast(`Par ${sku} guardado localmente. Se sincronizará con Sheets al recuperar conexión.`);
+  }
+}
+
+function openDetail(id) {
+  const p = catalog.find(x => x.id === id);
+  if (!p) return;
+  selectedProduct = p;
+  selectedDetailSize = p.sizes[0] || '';
+  renderDetail();
+  $('detailOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderDetail() {
+  const p = selectedProduct;
+  if (!p) return;
+  const pics = [...new Set([p.image, ...(Array.isArray(p.images) ? p.images : [])].map(x => extractCleanImageUrl(String(x || '').trim())).filter(Boolean))];
+  $('detailContent').innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div class="md:col-span-6">
+        <div class="aspect-square rounded-2xl bg-[#efeee8] p-5 grid place-items-center overflow-hidden border border-black/5">
+          ${imgHtml(pics[0], p.model, 'w-full h-full object-contain mix-blend-multiply').replace('<img ', '<img id="detailMainImg" ')}
+        </div>
+        ${pics.length > 1 ? `
+          <div class="flex gap-2 overflow-x-auto mt-3 pb-1">
+            ${pics.map((im, i) => `
+              <button type="button" class="w-16 h-16 rounded-xl bg-[#efeee8] p-1.5 border-2 ${i === 0 ? 'border-[#2952ff]' : 'border-transparent'} flex-shrink-0" onclick="changeDetailImage(${i}, this)">
+                ${imgHtml(im, 'Miniatura ' + (i + 1), 'w-full h-full object-contain mix-blend-multiply')}
+              </button>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+      <div class="md:col-span-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="eyebrow !text-[#2952ff]">${esc(p.brand)}</span>
+            <span class="px-2 py-0.5 rounded bg-black/5 font-mono-code font-bold text-xs">SKU ${esc(p.sku)}</span>
+          </div>
+          <h2 class="font-display font-bold text-2xl sm:text-4xl uppercase tracking-tight mt-2">${esc(p.model)}</h2>
+          <p class="text-xs font-bold text-[#6e6d66] mt-1">${esc(p.category || 'SNEAKER ARCHIVE')}</p>
+
+          <div class="font-display font-bold text-3xl mt-4 mb-5">
+            S/ ${p.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+
+          <div class="flex items-center justify-between mb-2">
+            <span class="eyebrow">TALLAS DISPONIBLES (EUR)</span>
+            <span class="font-mono-code text-[11px] font-bold px-2 py-0.5 rounded bg-[#121211] text-[#d8ff3e]">STOCK TOTAL: ${getProductTotalStock(p)} ${getProductTotalStock(p) === 1 ? 'PAR' : 'PARES'}</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-3">
+            ${p.sizes.map(s => {
+              const qStock = getSizeQty(p, s);
+              return `
+              <button type="button" class="size-btn ${selectedDetailSize === s ? 'selected' : ''}" onclick="selectedDetailSize='${esc(s)}';renderDetail()">
+                EUR ${esc(s)} <span class="ml-1 px-1.5 py-0.5 rounded bg-black/10 font-mono-code text-[10px]">${qStock} ${qStock === 1 ? 'par' : 'pares'}</span>
+              </button>`;
+            }).join('')}
+          </div>
+          ${selectedDetailSize ? `
+            <div class="flex items-center justify-between p-2.5 mb-3 rounded-xl bg-[#f4f3ee] border border-black/10">
+              <div class="text-xs font-bold">
+                Stock talla <span class="font-mono-code">EUR ${esc(selectedDetailSize)}</span>: <strong class="font-mono-code text-sm">${getSizeQty(p, selectedDetailSize)}</strong> ${getSizeQty(p, selectedDetailSize) === 1 ? 'par disponible' : 'pares disponibles'}
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button type="button" class="btn btn-light !py-1 !px-2.5 !text-xs font-mono-code" onclick="adjustProductStockInModal('${esc(p.id)}', '${esc(selectedDetailSize)}', -1)" title="Descontar 1 par vendido">−1 par</button>
+                <button type="button" class="btn btn-acid !py-1 !px-2.5 !text-xs font-mono-code" onclick="adjustProductStockInModal('${esc(p.id)}', '${esc(selectedDetailSize)}', 1)" title="Añadir 1 par al stock">＋1 par</button>
+              </div>
+            </div>
+          ` : ''}
+          <div class="p-3 rounded-xl bg-white border border-black/10 font-mono-code text-xs text-[#6e6d66]">
+            ${esc(p.equivalence || 'Sin equivalencias adicionales')}
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-6 pt-4 border-t border-black/10">
+          <button type="button" class="btn btn-acid flex-1" onclick="orderOnWhatsApp()">🖼 Ficha Visual WhatsApp ↗</button>
+          <button type="button" class="btn btn-dark" onclick="editSelected()">Editar</button>
+          <button type="button" class="btn btn-danger" onclick="deleteSelected()">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function changeDetailImage(i, btn) {
+  const p = selectedProduct;
+  if (!p) return;
+  const pics = [...new Set([p.image, ...(Array.isArray(p.images) ? p.images : [])].map(x => extractCleanImageUrl(String(x || '').trim())).filter(Boolean))];
+  const img = $('detailMainImg');
+  if (img) img.src = extractCleanImageUrl(pics[i]) || placeholder();
+  btn.parentElement.querySelectorAll('button').forEach(x => x.className = 'w-16 h-16 rounded-xl bg-[#efeee8] p-1.5 border-2 border-transparent flex-shrink-0');
+  btn.className = 'w-16 h-16 rounded-xl bg-[#efeee8] p-1.5 border-2 border-[#2952ff] flex-shrink-0';
+}
+
+async function adjustProductStockInModal(productId, size, delta) {
+  const idx = catalog.findIndex(x => x.id === productId);
+  if (idx < 0 || !size) return;
+  const p = catalog[idx];
+  const stockMap = { ...(p.sizeStock || {}) };
+  p.sizes.forEach(s => { if (!(s in stockMap)) stockMap[s] = 1; });
+  const current = Math.max(0, Math.floor(Number(stockMap[size]) || 0));
+  const next = current + delta;
+
+  if (next <= 0) {
+    const confirmRemove = await showDialog({
+      eyebrow: 'AGOTAR TALLA',
+      title: `¿Dejar en 0 y quitar EUR ${size}?`,
+      message: `La talla EUR ${size} quedará agotada y se retirará de las tallas disponibles de ${p.model}.`,
+      confirmText: 'Sí, agotar talla'
+    });
+    if (!confirmRemove) return;
+    delete stockMap[size];
+  } else {
+    stockMap[size] = next;
+  }
+
+  p.sizeStock = stockMap;
+  p.sizes = Object.keys(stockMap).sort((a, b) => parseFloat(a) - parseFloat(b));
+  p.updatedAt = Date.now();
+  selectedProduct = p;
+  if (!p.sizes.includes(selectedDetailSize)) {
+    selectedDetailSize = p.sizes[0] || '';
+  }
+
+  markPendingSync(true);
+  persist();
+  renderDetail();
+  renderCatalog();
+  toast(`Stock actualizado: EUR ${size} (${next > 0 ? next + (next === 1 ? ' par' : ' pares') : 'Agotado'})`);
+  pushCatalogToSheets(false);
+}
+
+function closeModal(id) {
+  $(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function overlayClick(e, id) {
+  if (e.target.id === id) closeModal(id);
+}
+
+function editSelected() {
+  if (!selectedProduct) return;
+  const p = catalog.find(x => x.id === selectedProduct.id);
+  closeModal('detailOverlay');
+  if (p) {
+    switchView('editor');
+    fillForm(p);
+  }
+}
+
+async function deleteSelected() {
+  if (!selectedProduct) return;
+  const p = selectedProduct;
+  const ok = await showDialog({
+    eyebrow: 'ELIMINAR PRODUCTO',
+    title: `¿Eliminar ${p.model} (${p.sku})?`,
+    message: 'Se eliminará permanentemente de este dispositivo y de Google Sheets.',
+    confirmText: 'Sí, eliminar'
+  });
+  if (!ok) return;
+
+  const skuUpper = String(p.sku || '').trim().toUpperCase();
+  if (!skuUpper) {
+    toast('No se puede eliminar: el producto no tiene SKU.');
+    return;
+  }
+
+  // Tombstone local para impedir que una lectura antigua vuelva a insertar el producto.
+  deletedSkus[skuUpper] = Date.now();
+  catalog = catalog.filter(x => String(x.id) !== String(p.id) && String(x.sku || '').trim().toUpperCase() !== skuUpper);
+  persist();
+  renderCatalog();
+  closeModal('detailOverlay');
+  toast(`Eliminando ${skuUpper} de Google Sheets…`);
+
+  const gasUrl = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  if (!gasUrl) {
+    toast(`Eliminado del dispositivo; configura Apps Script para borrar ${skuUpper} de Sheets.`);
+    return;
+  }
+
+  try {
+    // 1) Ejecutar el borrado remoto y esperar su respuesta antes de enviar otro catálogo.
+    let deletion = await requestSheetsJsonp(gasUrl, { action: 'deleteSku', sku: skuUpper });
+    let confirmed = deletion && deletion.status === 'success' && String(deletion.deletedSku || '').toUpperCase() === skuUpper;
+
+    // 2) Verificar leyendo Sheets directamente; no basta con que el navegador diga que envió el borrado.
+    let latest = await requestSheetsJsonp(gasUrl);
+    let stillThere = Array.isArray(latest?.items) && latest.items.some(raw => {
+      const item = normalize(raw);
+      return item && String(item.sku || '').trim().toUpperCase() === skuUpper;
+    });
+
+    // 3) Si la implementación desplegada no ejecutó deleteSku, reemplazar el catálogo sin ese SKU.
+    if (stillThere || !confirmed) {
+      await pushCatalogToSheets(false);
+      await new Promise(resolve => setTimeout(resolve, 900));
+      latest = await requestSheetsJsonp(gasUrl);
+      stillThere = Array.isArray(latest?.items) && latest.items.some(raw => {
+        const item = normalize(raw);
+        return item && String(item.sku || '').trim().toUpperCase() === skuUpper;
+      });
+    }
+
+    if (!stillThere) {
+      $('catalogSyncLabel').textContent = 'Sincronizado con Google Sheets';
+      toast(`✓ ${skuUpper} eliminado de Google Sheets y verificado.`);
+    } else {
+      $('catalogSyncLabel').textContent = 'Borrado pendiente de verificar';
+      toast(`Eliminado localmente, pero ${skuUpper} sigue en Sheets. Actualiza el despliegue de Apps Script v7.`);
+    }
+  } catch (err) {
+    console.error('Error al eliminar de Google Sheets:', err);
+    $('catalogSyncLabel').textContent = 'No se pudo verificar el borrado';
+    toast(`Eliminado localmente; no se pudo confirmar el borrado de ${skuUpper} en Sheets. Revisa Apps Script v7 y vuelve a sincronizar.`);
+  }
+}
+function renderPrintLookbook() {
+  const container = $('printLookbook');
+  if (!container) return false;
+
+  const q = $('catalogSearch').value.trim().toLowerCase();
+  const sortMode = $('catalogSort')?.value || 'recent';
+
+  let list = catalog.filter(p =>
+    (activeBrand === 'Todos' || p.brand.toLowerCase() === activeBrand.toLowerCase()) &&
+    (activeSize === 'Todas' || p.sizes.includes(activeSize)) &&
+    (!q || [p.sku, p.model, p.brand, p.category, p.ean, p.equivalence].join(' ').toLowerCase().includes(q))
+  );
+
+  if (!list.length) {
+    toast('No hay productos que coincidan con los filtros actuales.');
+    return false;
+  }
+
+  list.sort((a, b) => {
+    if (sortMode === 'model') return a.model.localeCompare(b.model);
+    if (sortMode === 'priceAsc') return a.price - b.price;
+    if (sortMode === 'priceDesc') return b.price - a.price;
+    if (sortMode === 'sku') return a.sku.localeCompare(b.sku);
+    return (b.updatedAt || 0) - (a.updatedAt || 0);
+  });
+
+  const dateStr = new Date().toLocaleDateString('es-PE', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }).toUpperCase();
+
+  const whatsappRaw = (localStorage.getItem('kicks_pe_whatsapp') || '').trim();
+  const totalUnitsAll = list.reduce((acc, p) => acc + getProductTotalStock(p), 0);
+  const hero = list[0];
+
+  const CARDS_PER_PAGE = 4;
+  const pages = [];
+  for (let i = 0; i < list.length; i += CARDS_PER_PAGE) {
+    pages.push(list.slice(i, i + CARDS_PER_PAGE));
+  }
+
+  container.innerHTML = `
+    <section class="print-cover">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div class="print-cover-kicker">OFFICIAL SEASON DROP · ARCHIVE EDITION</div>
+          <div style="font:700 22px 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin-top:2mm;">KICKS STUDIO<span style="color:#d8ff3e;">.</span></div>
+        </div>
+        <div style="background:#d8ff3e;color:#121211;padding:2.5mm 4mm;border-radius:2mm;font:800 10px 'JetBrains Mono',monospace;letter-spacing:0.12em;">
+          100% PARES ORIGINALES
+        </div>
+      </div>
+
+      <div>
+        <div class="print-cover-title">BUILT FOR<br>THE STREETS.<br><span style="color:#d8ff3e;">READY TO SHIP.</span></div>
+        <div class="print-cover-sub" style="margin-top:4mm;">
+          Catálogo Oficial de Temporada · Stock verificado por talla europea · Reserva inmediata vía WhatsApp
+        </div>
+        <div class="print-cover-hero">
+          <div class="print-cover-badge">DESTACADO · ${esc(hero.brand)} ${esc(hero.sku)}</div>
+          ${imgHtml(hero.image, hero.model || 'Producto destacado')}
+          <div class="print-cover-price-pill">S/ ${hero.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+        </div>
+      </div>
+
+      <div class="print-cover-meta">
+        <span>EDICIÓN ACTUALIZADA<br><strong style="color:#fff;">${esc(dateStr)}</strong></span>
+        <span>INVENTARIO DISPONIBLE<br><strong style="color:#d8ff3e;">${list.length} MODELOS · ${totalUnitsAll} PARES</strong></span>
+        <span style="text-align:right;">PEDIDOS DIRECTOS<br><strong style="color:#fff;">${whatsappRaw ? 'WHATSAPP +' + esc(whatsappRaw) : 'KICKS STUDIO PERÚ'}</strong></span>
+      </div>
+    </section>
+
+    ${pages.map((pageItems, idx) => `
+      <section class="print-page">
+        <div>
+          <header class="print-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:34px;height:34px;border-radius:8px;background:#d8ff3e;color:#121211;display:grid;place-items:center;font:700 17px 'Space Grotesk',sans-serif;">K.</div>
+              <div>
+                <div style="font:700 17px 'Space Grotesk',sans-serif;letter-spacing:-0.03em;line-height:1;">KICKS STUDIO · OFFICIAL DROPBOOK</div>
+                <div style="font:700 8.5px 'JetBrains Mono',monospace;color:#d8ff3e;letter-spacing:0.14em;margin-top:3px;">
+                  ${activeBrand !== 'Todos' ? 'COLECCIÓN ' + esc(activeBrand.toUpperCase()) : 'TODAS LAS MARCAS'} ${activeSize !== 'Todas' ? '· FILTRO EUR ' + esc(activeSize) : ''}
+                </div>
+              </div>
+            </div>
+            <div style="text-align:right;font:700 9px 'JetBrains Mono',monospace;color:#d0d0ca;">
+              <div>FECHA: ${esc(dateStr)}</div>
+              ${whatsappRaw ? `<div style="color:#d8ff3e;">WA PEDIDOS: +${esc(whatsappRaw)}</div>` : ''}
+            </div>
+          </header>
+
+          <div class="print-grid">
+            ${pageItems.map(p => {
+              const totalUnits = getProductTotalStock(p);
+              return `
+              <article class="print-card">
+                <div class="print-card-top">
+                  <span style="font-size:9.5px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#d8ff3e;">
+                    ${esc(p.brand)}${p.category ? ' // ' + esc(p.category) : ''}
+                  </span>
+                  <span style="font:700 9.5px 'JetBrains Mono',monospace;background:#ffffff;color:#121211;padding:1px 6px;border-radius:3px;">
+                    ART. ${esc(p.sku)}
+                  </span>
+                </div>
+
+                <div class="print-card-photo">
+                  ${imgHtml(p.image, p.model)}
+                  <span style="position:absolute;bottom:6px;left:6px;background:#121211;color:#ffffff;font:700 8px 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;letter-spacing:0.08em;">
+                    STOCK: ${totalUnits} ${totalUnits === 1 ? 'PAR' : 'PARES'}
+                  </span>
+                </div>
+
+                <div class="print-card-body">
+                  <div>
+                    <h3 style="font:700 15px/1.12 'Space Grotesk',sans-serif;letter-spacing:-0.03em;text-transform:uppercase;margin:0 0 6px;color:#121211;">
+                      ${esc(p.model || 'MODELO SIN TÍTULO')}
+                    </h3>
+
+                    <div style="font-size:8px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#6e6d66;margin-bottom:4px;">
+                      TALLAS EN STOCK (EUR)
+                    </div>
+                    <div class="print-sizes">
+                      ${p.sizes.length
+                        ? p.sizes.map(s => {
+                            const q = getSizeQty(p, s);
+                            return `<span class="print-size-pill">EUR ${esc(s)}${q > 1 ? ' · ' + q + 'p' : ''}</span>`;
+                          }).join('')
+                        : `<span class="print-size-pill">AGOTADO</span>`
+                      }
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;border-top:1.5px solid #121211;padding-top:7px;margin-top:4px;">
+                    <div style="font:700 8px/1.35 'JetBrains Mono',monospace;color:#444;max-width:58%;">
+                      ${p.equivalence ? esc(p.equivalence) : 'AUTENTICIDAD GARANTIZADA'}
+                    </div>
+                    <div class="print-price-tag">
+                      <small style="font-size:9.5px;font-weight:800;margin-right:2px;">S/</small>${p.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            `;
+            }).join('')}
+          </div>
+        </div>
+
+        <footer class="print-footer">
+          <span>KICKS STUDIO · ARCHIVE DROPBOOK</span>
+          <span>ENVÍA CAPTURA O CÓDIGO ART/SKU POR WHATSAPP ${whatsappRaw ? '(+' + esc(whatsappRaw) + ')' : ''}</span>
+          <span>HOJA ${idx + 1} / ${pages.length}</span>
+        </footer>
+      </section>
+    `).join('')}
+  `;
+  return true;
+}
+
+function printCatalog() {
+  if (!catalog.length) {
+    toast('Añade al menos un producto para imprimir el catálogo.');
+    return;
+  }
+  if (!renderPrintLookbook()) return;
+  const printImages = [...$('printLookbook').querySelectorAll('img')];
+  printImages.forEach(img => { img.loading = 'eager'; img.decoding = 'sync'; });
+  Promise.all(printImages.map(img => img.complete ? Promise.resolve() : new Promise(resolve => {
+    img.addEventListener('load', resolve, { once: true });
+    img.addEventListener('error', resolve, { once: true });
+    setTimeout(resolve, 2800);
+  }))).then(() => setTimeout(() => window.print(), 180));
+}
+
+// === GENERADOR DE TARJETAS VISUALES EN IMAGEN (CANVAS) PARA WHATSAPP ===
+async function loadCanvasImageSafe(url) {
+  const clean = extractCleanImageUrl(url);
+  if (!clean) return null;
+  return new Promise(resolve => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    const timer = setTimeout(() => resolve(null), 3500);
+    im.onload = () => { clearTimeout(timer); resolve(im); };
+    im.onerror = () => { clearTimeout(timer); resolve(null); };
+    im.src = clean;
+  });
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+async function generateVisualTicketCanvas({ title = 'CONFIRMACIÓN DE PEDIDO', orderId = '', customerName = '', deliveryMode = '', paymentMethod = '', notes = '', items = [] }) {
+  const W = 1080;
+  const rowH = 155;
+  const H = Math.max(1180, 660 + items.length * rowH);
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo editorial oscuro + contenedor crema
+  ctx.fillStyle = '#121211';
+  ctx.fillRect(0, 0, W, H);
+
+  // Marco interior papel
+  roundRectPath(ctx, 36, 36, W - 72, H - 72, 36);
+  ctx.fillStyle = '#f4f3ee';
+  ctx.fill();
+
+  // Cabecera negra estilo etiqueta Nike/Adidas
+  roundRectPath(ctx, 64, 64, W - 128, 175, 26);
+  ctx.fillStyle = '#121211';
+  ctx.fill();
+
+  // Logo K.
+  roundRectPath(ctx, 96, 94, 86, 86, 20);
+  ctx.fillStyle = '#d8ff3e';
+  ctx.fill();
+  ctx.fillStyle = '#121211';
+  ctx.font = '700 44px "Space Grotesk", sans-serif';
+  ctx.fillText('K.', 118, 152);
+
+  ctx.fillStyle = '#d8ff3e';
+  ctx.font = '800 18px "JetBrains Mono", monospace';
+  ctx.fillText('KICKS STUDIO // OFFICIAL ORDER PASS', 206, 118);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 40px "Space Grotesk", sans-serif';
+  ctx.fillText(title.toUpperCase(), 206, 166);
+
+  const dateNow = new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+  ctx.fillStyle = '#9b9a92';
+  ctx.font = '700 18px "JetBrains Mono", monospace';
+  ctx.fillText(`${orderId || 'KS-PASS'} · ${dateNow}`, 206, 202);
+
+  // Datos del cliente
+  roundRectPath(ctx, 64, 262, W - 128, 130, 22);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(18,18,17,0.12)';
+  ctx.stroke();
+
+  ctx.fillStyle = '#6e6d66';
+  ctx.font = '800 15px "JetBrains Mono", monospace';
+  ctx.fillText('CLIENTE / DESTINO', 92, 296);
+  ctx.fillText('ENTREGA & PAGO', 560, 296);
+
+  ctx.fillStyle = '#121211';
+  ctx.font = '700 25px "Space Grotesk", sans-serif';
+  ctx.fillText((customerName || 'CLIENTE KICKS STUDIO').slice(0, 28).toUpperCase(), 92, 332);
+
+  ctx.font = '600 18px "DM Sans", sans-serif';
+  ctx.fillStyle = '#444440';
+  ctx.fillText((notes || 'Reserva sujeta a coordinación por WhatsApp').slice(0, 38), 92, 366);
+
+  ctx.fillStyle = '#121211';
+  ctx.font = '700 21px "Space Grotesk", sans-serif';
+  ctx.fillText((deliveryMode || 'Envío / Entrega coordinada').slice(0, 30), 560, 332);
+  ctx.fillStyle = '#2952ff';
+  ctx.font = '700 18px "JetBrains Mono", monospace';
+  ctx.fillText(`PAGO: ${(paymentMethod || 'YAPE / PLIN / TRANSFERENCIA').toUpperCase()}`, 560, 366);
+
+  // Lista de pares
+  let y = 420;
+  let totalPairs = 0;
+  let totalAmount = 0;
+
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    const qty = Math.max(1, Number(it.qty) || 1);
+    const price = Number(it.price) || 0;
+    const sub = qty * price;
+    totalPairs += qty;
+    totalAmount += sub;
+
+    roundRectPath(ctx, 64, y, W - 128, 136, 22);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(18,18,17,0.1)';
+    ctx.stroke();
+
+    // Foto miniatura si permite CORS, o insignia SKU
+    roundRectPath(ctx, 82, y + 16, 104, 104, 16);
+    ctx.fillStyle = '#efeee8';
+    ctx.fill();
+
+    const loadedImg = await loadCanvasImageSafe(it.image);
+    if (loadedImg) {
+      const ratio = Math.min(88 / loadedImg.width, 88 / loadedImg.height);
+      const dw = loadedImg.width * ratio;
+      const dh = loadedImg.height * ratio;
+      ctx.drawImage(loadedImg, 82 + (104 - dw) / 2, y + 16 + (104 - dh) / 2, dw, dh);
+    } else {
+      ctx.fillStyle = '#121211';
+      ctx.font = '700 18px "JetBrains Mono", monospace';
+      ctx.fillText((it.sku || 'KICKS').slice(0, 7), 96, y + 74);
+    }
+
+    // Info del par
+    ctx.fillStyle = '#2952ff';
+    ctx.font = '800 15px "JetBrains Mono", monospace';
+    ctx.fillText(`${(it.brand || 'SNEAKER').toUpperCase()} · SKU ${it.sku || ''}`, 206, y + 40);
+
+    ctx.fillStyle = '#121211';
+    ctx.font = '700 26px "Space Grotesk", sans-serif';
+    ctx.fillText(String(it.model || 'MODELO').toUpperCase().slice(0, 26), 206, y + 76);
+
+    // Píldora de talla y cantidad
+    roundRectPath(ctx, 206, y + 90, 240, 32, 8);
+    ctx.fillStyle = '#121211';
+    ctx.fill();
+    ctx.fillStyle = '#d8ff3e';
+    ctx.font = '700 16px "JetBrains Mono", monospace';
+    ctx.fillText(`TALLA EUR ${it.size}  ×  ${qty} ${qty === 1 ? 'PAR' : 'PARES'}`, 220, y + 112);
+
+    // Subtotal
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#6e6d66';
+    ctx.font = '700 15px "JetBrains Mono", monospace';
+    ctx.fillText(`C/U S/ ${price.toFixed(2)}`, W - 96, y + 52);
+
+    ctx.fillStyle = '#121211';
+    ctx.font = '700 30px "Space Grotesk", sans-serif';
+    ctx.fillText(`S/ ${sub.toFixed(2)}`, W - 96, y + 96);
+    ctx.textAlign = 'left';
+
+    y += rowH;
+  }
+
+  // Caja total estilo drop pass
+  const footerY = H - 205;
+  roundRectPath(ctx, 64, footerY, W - 128, 128, 26);
+  ctx.fillStyle = '#121211';
+  ctx.fill();
+
+  ctx.fillStyle = '#9b9a92';
+  ctx.font = '800 16px "JetBrains Mono", monospace';
+  ctx.fillText('TOTAL PARES RESERVADOS', 98, footerY + 46);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '700 36px "Space Grotesk", sans-serif';
+  ctx.fillText(`${totalPairs} ${totalPairs === 1 ? 'PAR' : 'PARES'}`, 98, footerY + 94);
+
+  // Etiqueta Acid de Precio Total
+  roundRectPath(ctx, W - 430, footerY + 22, 336, 84, 18);
+  ctx.fillStyle = '#d8ff3e';
+  ctx.fill();
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#121211';
+  ctx.font = '800 14px "JetBrains Mono", monospace';
+  ctx.fillText('TOTAL A PAGAR', W - 118, footerY + 48);
+  ctx.font = '700 38px "Space Grotesk", sans-serif';
+  ctx.fillText(`S/ ${totalAmount.toFixed(2)}`, W - 118, footerY + 88);
+  ctx.textAlign = 'left';
+
+  return canvas;
+}
+
+async function openVisualCardModal(config, whatsappPhone, whatsappText) {
+  toast('Generando tarjeta visual de pedido…');
+  const canvas = await generateVisualTicketCanvas(config);
+  lastGeneratedCardDataUrl = canvas.toDataURL('image/png');
+  lastGeneratedCardBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+  const cleanPhone = String(whatsappPhone || '').replace(/\D/g, '');
+  lastGeneratedWhatsappUrl = cleanPhone
+    ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappText)}`
+    : `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
+
+  $('visualCardPreviewImg').src = lastGeneratedCardDataUrl;
+  $('visualCardOverlay').classList.add('open');
+}
+
+async function shareOrDownloadVisualCard() {
+  if (lastGeneratedCardBlob && navigator.canShare) {
+    const file = new File([lastGeneratedCardBlob], 'kicks-studio-pedido.png', { type: 'image/png' });
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          title: 'KICKS STUDIO — Pedido',
+          text: 'Ficha oficial de pedido KICKS STUDIO',
+          files: [file]
+        });
+        return;
+      } catch (_) {}
+    }
+  }
+  downloadVisualCardPng();
+  if (lastGeneratedWhatsappUrl) {
+    window.open(lastGeneratedWhatsappUrl, '_blank', 'noopener,noreferrer');
+  }
+}
+
+function downloadVisualCardPng() {
+  if (!lastGeneratedCardDataUrl) return;
+  const a = document.createElement('a');
+  a.href = lastGeneratedCardDataUrl;
+  a.download = `kicks-studio-ticket-${Date.now().toString().slice(-5)}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast('Imagen PNG descargada');
+}
+
+async function orderOnWhatsApp() {
+  if (!selectedProduct) return;
+  const p = selectedProduct;
+  const size = selectedDetailSize || p.sizes[0] || 'Por confirmar';
+  const phone = (localStorage.getItem('kicks_pe_whatsapp') || '').replace(/\D/g, '');
+  const msg = `Hola, te envío la ficha oficial de *${p.brand} ${p.model}* [SKU: ${p.sku}] en talla EUR ${size} (S/ ${p.price.toFixed(2)}).`;
+
+  await openVisualCardModal({
+    title: 'COTIZACIÓN OFICIAL',
+    orderId: 'SKU-' + p.sku,
+    customerName: 'COTIZACIÓN DIRECTA',
+    deliveryMode: 'Envío / Entrega a coordinar',
+    paymentMethod: 'Yape / Plin / Transferencia',
+    notes: p.equivalence || 'Calzado 100% Original',
+    items: [{
+      sku: p.sku,
+      brand: p.brand,
+      model: p.model,
+      size: size,
+      qty: 1,
+      price: p.price,
+      image: p.image
+    }]
+  }, phone, msg);
+}
+
+// === GESTIÓN DE SOLICITUDES DE COMPRA (BANDEJA DE ENTRADA DEL ADMIN) ===
+function updateOrdersBadges() {
+  const pendingCount = orders.filter(o => o.status === 'PENDIENTE').length;
+  const desk = $('ordersBadgeDesk');
+  if (desk) {
+    desk.textContent = pendingCount;
+    desk.classList.toggle('hidden', pendingCount === 0);
+  }
+  if ($('ordersBadgeMob')) $('ordersBadgeMob').textContent = pendingCount;
+}
+
+function setOrderFilter(st) {
+  activeOrderFilter = st;
+  document.querySelectorAll('[data-ostatus]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.ostatus === st);
+  });
+  renderOrders();
+}
+
+function renderOrders() {
+  updateOrdersBadges();
+  const listEl = $('ordersList');
+  const emptyEl = $('ordersEmpty');
+  if (!listEl || !emptyEl) return;
+
+  const filtered = orders.filter(o => activeOrderFilter === 'TODOS' || o.status === activeOrderFilter);
+  if (!filtered.length) {
+    listEl.innerHTML = '';
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  emptyEl.classList.add('hidden');
+
+  listEl.innerHTML = filtered.map(o => {
+    const isPending = o.status === 'PENDIENTE';
+    const items = Array.isArray(o.items) ? o.items : [];
+    return `
+      <article class="panel !p-5 flex flex-col justify-between gap-4 border-2 ${isPending ? 'border-[#121211]' : 'border-black/10'}">
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-black/10">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-lg font-mono-code font-bold text-xs ${isPending ? 'bg-[#d8ff3e] text-[#121211]' : 'bg-emerald-100 text-emerald-800'}">
+                ${isPending ? '● PENDIENTE' : '✓ CONFIRMADO'}
+              </span>
+              <span class="font-mono-code text-xs font-bold text-[#6e6d66]">${esc(o.id)}</span>
+            </div>
+            <span class="font-mono-code text-[11px] text-[#6e6d66]">${esc(o.createdAt)}</span>
+          </div>
+
+          <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div>
+              <span class="eyebrow block">CLIENTE</span>
+              <strong class="font-display text-base">${esc(o.customerName || 'Cliente Web')}</strong>
+              ${o.customerPhone ? `<div class="font-mono-code text-xs text-[#2952ff]">+${esc(o.customerPhone)}</div>` : ''}
+            </div>
+            <div>
+              <span class="eyebrow block">ENTREGA & PAGO</span>
+              <div class="font-bold">${esc(o.deliveryMode || 'Por coordinar')}</div>
+              <div class="text-[#6e6d66]">${esc(o.paymentMethod || 'Yape / Plin')}</div>
+            </div>
+          </div>
+          ${o.notes ? `<div class="mt-2 p-2.5 rounded-xl bg-[#f4f3ee] text-xs text-[#121211]"><strong>Nota/Dirección:</strong> ${esc(o.notes)}</div>` : ''}
+
+          <div class="mt-3 space-y-1.5">
+            <span class="eyebrow block">PARES SOLICITADOS (${o.totalPairs || items.length})</span>
+            ${items.map(it => `
+              <div class="flex items-center justify-between gap-2 p-2 rounded-xl bg-[#faf9f6] border border-black/5 text-xs">
+                <div class="truncate">
+                  <strong class="font-mono-code">${esc(it.sku)}</strong> · ${esc(it.brand)} ${esc(it.model)}
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  <span class="px-2 py-0.5 rounded bg-[#121211] text-[#d8ff3e] font-mono-code font-bold text-[10px]">EUR ${esc(it.size)} × ${it.qty || 1}</span>
+                  <strong class="font-mono-code">S/ ${((Number(it.price) || 0) * (Number(it.qty) || 1)).toFixed(2)}</strong>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-black/10 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="eyebrow block">TOTAL PEDIDO</span>
+            <strong class="font-display text-2xl font-bold">S/ ${(Number(o.totalAmount) || 0).toFixed(2)}</strong>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" class="btn btn-light !py-2 !px-3" onclick="openOrderVisualConfirmation('${esc(o.id)}')">
+              🖼 Tarjeta WhatsApp
+            </button>
+            ${isPending ? `
+              <button type="button" class="btn btn-acid !py-2 !px-3" onclick="confirmOrderAndDiscount('${esc(o.id)}')">
+                ✓ Aprobar & Descontar Stock
+              </button>
+            ` : ''}
+            <button type="button" class="btn btn-danger !py-2 !px-2.5" onclick="deleteOrderFromAdmin('${esc(o.id)}')" title="Eliminar solicitud">×</button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+async function openOrderVisualConfirmation(orderId) {
+  const ord = orders.find(x => x.id === orderId);
+  if (!ord) return;
+  const phone = (ord.customerPhone || localStorage.getItem('kicks_pe_whatsapp') || '').replace(/\D/g, '');
+  const msg = `Hola *${ord.customerName}*, te enviamos la tarjeta oficial de tu pedido *${ord.id}* en KICKS STUDIO (Total: S/ ${Number(ord.totalAmount || 0).toFixed(2)}).`;
+
+  await openVisualCardModal({
+    title: ord.status === 'CONFIRMADO' ? 'PEDIDO CONFIRMADO' : 'RESUMEN DE SOLICITUD',
+    orderId: ord.id,
+    customerName: ord.customerName,
+    deliveryMode: ord.deliveryMode,
+    paymentMethod: ord.paymentMethod,
+    notes: ord.notes,
+    items: ord.items || []
+  }, phone, msg);
+}
+
+async function confirmOrderAndDiscount(orderId) {
+  const ord = orders.find(x => x.id === orderId);
+  if (!ord) return;
+  const ok = await showDialog({
+    eyebrow: 'APROBAR SOLICITUD DE COMPRA',
+    title: `¿Confirmar pedido ${ord.id} de ${ord.customerName}?`,
+    message: 'Se descontarán automáticamente los pares solicitados de tu stock local y de Google Sheets, y el pedido pasará a CONFIRMADO.',
+    confirmText: 'Sí, confirmar y descontar'
+  });
+  if (!ok) return;
+
+  // Descontar localmente
+  (ord.items || []).forEach(it => {
+    const p = catalog.find(x => x.sku === String(it.sku || '').toUpperCase());
+    if (!p) return;
+    const stockMap = { ...(p.sizeStock || {}) };
+    p.sizes.forEach(s => { if (!(s in stockMap)) stockMap[s] = 1; });
+    const nextQty = Math.max(0, (stockMap[it.size] || 0) - Math.max(1, Number(it.qty) || 1));
+    if (nextQty <= 0) delete stockMap[it.size];
+    else stockMap[it.size] = nextQty;
+    p.sizeStock = stockMap;
+    p.sizes = Object.keys(stockMap).sort((a, b) => parseFloat(a) - parseFloat(b));
+    p.updatedAt = Date.now();
+  });
+
+  ord.status = 'CONFIRMADO';
+  persist();
+  renderOrders();
+  renderCatalog();
+  toast(`✓ Pedido ${ord.id} confirmado y stock actualizado`);
+
+  const url = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  if (url) {
+    try {
+      await requestSheetsJsonp(url, { action: 'updateOrderStatus', orderId: ord.id, status: 'CONFIRMADO', discount: '1' });
+      await pushCatalogToSheets(false);
+    } catch (_) {}
+  }
+}
+
+async function deleteOrderFromAdmin(orderId) {
+  const ok = await showDialog({
+    eyebrow: 'ELIMINAR SOLICITUD',
+    title: `¿Eliminar la solicitud ${orderId}?`,
+    message: 'Se borrará de la bandeja de solicitudes en Google Sheets.',
+    confirmText: 'Eliminar'
+  });
+  if (!ok) return;
+  orders = orders.filter(x => x.id !== orderId);
+  renderOrders();
+  const url = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  if (url) {
+    try { await requestSheetsJsonp(url, { action: 'deleteOrder', orderId }); } catch (_) {}
+  }
+  toast(`Solicitud ${orderId} eliminada`);
+}
+
+function shareCatalog() {
+  if (!catalog.length) {
+    toast('El catálogo está vacío.');
+    return;
+  }
+  const text = `KICKS STUDIO — CATÁLOGO DISPONIBLE (${catalog.length} pares)\n\n` +
+    catalog.map(p => `• ${p.brand} ${p.model} [${p.sku}] — S/ ${p.price.toFixed(2)} | EUR: ${p.sizes.map(s => getSizeQty(p, s) > 1 ? s + ' (' + getSizeQty(p, s) + ' pares)' : s).join(', ')}`).join('\n');
+  if (navigator.share) {
+    navigator.share({ title: 'KICKS STUDIO — Catálogo', text }).catch(() => {});
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    toast('Resumen del catálogo copiado al portapapeles');
+  }
+}
+
+function exportBackup() {
+  const payload = { app: 'KICKS STUDIO PRO', version: 4, exportedAt: new Date().toISOString(), catalog };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kicks-studio-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('Archivo backup JSON descargado');
+}
+
+async function importBackup(e) {
+  const f = e.target.files?.[0];
+  e.target.value = '';
+  if (!f) return;
+  try {
+    const parsed = JSON.parse(await f.text());
+    const items = Array.isArray(parsed) ? parsed : parsed.catalog;
+    if (!Array.isArray(items)) throw new Error('Formato JSON inválido');
+    const incoming = items.map(normalize).filter(Boolean);
+    if (!incoming.length) throw new Error('No se encontraron productos válidos en el JSON');
+
+    const ok = await showDialog({
+      eyebrow: 'IMPORTAR BACKUP',
+      title: `Importar ${incoming.length} productos`,
+      message: `Se combinarán o reemplazarán con tu catálogo actual (${catalog.length} productos). ¿Deseas continuar?`,
+      confirmText: 'Importar ahora'
+    });
+    if (!ok) return;
+
+    const bySku = new Map(catalog.map(p => [p.sku, p]));
+    incoming.forEach(p => bySku.set(p.sku, p));
+    catalog = [...bySku.values()];
+    persist();
+    renderCatalog();
+    toast(`Catálogo actualizado: ${catalog.length} productos`);
+  } catch (err) {
+    toast(err.message || 'No se pudo importar el archivo JSON');
+  }
+}
+
+function openSettings() {
+  $('sheetsUrl').value = localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL;
+  $('whatsapp').value = localStorage.getItem('kicks_pe_whatsapp') || '';
+  $('settingsOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function saveSettings() {
+  const url = $('sheetsUrl').value.trim() || DEFAULT_GAS_URL;
+  localStorage.setItem('kicks_pe_gas_url', url);
+  localStorage.setItem('kicks_pe_whatsapp', $('whatsapp').value.trim());
+  closeModal('settingsOverlay');
+  toast('Ajustes guardados correctamente');
+  if (url) syncFromSheets(true);
+}
+
+const APPS_SCRIPT_CODE = `/**
+ * KICKS STUDIO — sincronización idempotente HTML <-> Google Sheets + Drive v9
+ * Pestaña 1 (Activa / Catálogo): Una fila por SKU con stock detallado por talla ("38:2, 39:1").
+ * Pestaña 2 (PEDIDOS): Registro automático de solicitudes de compra desde la tienda pública.
+ * Soporta CORS completo, alta concurrencia, gestión de pedidos y descuento de stock.
+ */
+const KS_SHEET_NAME = '';
+const KS_ORDERS_SHEET_NAME = 'PEDIDOS';
+const KS_HEADERS = ['ID', 'SKU', 'Marca', 'Modelo', 'Categoría', 'Precio S/', 'Tallas EUR (Stock)', 'Equivalencias', 'Imagen principal', 'Galería JSON', 'Actualizado (Lima)'];
+const KS_ORDER_HEADERS = ['ID Pedido', 'Fecha (Lima)', 'Cliente', 'Teléfono / WhatsApp', 'Entrega', 'Método Pago', 'Notas / Dirección', 'Total Pares', 'Total S/', 'Estado', 'Items JSON'];
+const KS_FOLDER_NAME = 'KICKS_STUDIO_PRODUCT_IMAGES';
+
+function doGet(e) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    const sh = ksGetSheet_();
+    ksEnsureHeaders_(sh);
+    const ordersSh = ksGetOrdersSheet_();
+    const action = e && e.parameter ? String(e.parameter.action || '') : '';
+
+    if (action === 'deleteSku') {
+      const targetSku = String(e.parameter.sku || '').trim().toUpperCase();
+      if (targetSku) {
+        const vals = sh.getDataRange().getValues();
+        for (let r = vals.length - 1; r >= 1; r--) {
+          if (String(vals[r][1] || '').trim().toUpperCase() === targetSku) {
+            sh.deleteRow(r + 1);
+          }
+        }
+        SpreadsheetApp.flush();
+      }
+      return ksOutput_(e, { status: 'success', deletedSku: targetSku });
+    }
+
+    if (action === 'updateOrderStatus') {
+      const orderId = String(e.parameter.orderId || '').trim();
+      const newStatus = String(e.parameter.status || 'CONFIRMADO').trim().toUpperCase();
+      const discountStock = String(e.parameter.discount || '') === '1';
+      const result = ksUpdateOrderStatus_(sh, ordersSh, orderId, newStatus, discountStock);
+      SpreadsheetApp.flush();
+      return ksOutput_(e, result);
+    }
+
+    if (action === 'deleteOrder') {
+      const orderId = String(e.parameter.orderId || '').trim();
+      if (orderId) {
+        const oVals = ordersSh.getDataRange().getValues();
+        for (let r = oVals.length - 1; r >= 1; r--) {
+          if (String(oVals[r][0] || '').trim() === orderId) {
+            ordersSh.deleteRow(r + 1);
+          }
+        }
+        SpreadsheetApp.flush();
+      }
+      return ksOutput_(e, { status: 'success', deletedOrderId: orderId });
+    }
+
+    const values = sh.getDataRange().getValues();
+    const items = [];
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      if (!row[1]) continue;
+      let images = [];
+      try { images = JSON.parse(String(row[9] || '[]')); } catch (_) { images = row[9] ? [String(row[9])] : []; }
+      if (!Array.isArray(images)) images = [];
+      const primary = String(row[8] || images[0] || '').trim();
+      images = [...new Set([primary, ...images.map(x => String(x || '').trim())].filter(Boolean))];
+      
+      const parsedStock = ksParseSizesAndStock_(row[6]);
+
+      items.push({
+        id: String(row[0] || ('ks-' + String(row[1]).trim().toUpperCase())),
+        sku: String(row[1]).trim().toUpperCase(),
+        brand: String(row[2] || 'Adidas'),
+        model: String(row[3] || ''),
+        category: String(row[4] || ''),
+        price: Number(row[5]) || 0,
+        sizes: parsedStock.sizes,
+        sizeStock: parsedStock.sizeStock,
+        equivalence: String(row[7] || ''),
+        image: primary,
+        images: images
+      });
+    }
+
+    const orders = ksReadOrders_(ordersSh);
+    return ksOutput_(e, { status: 'success', items: items, count: items.length, orders: orders, version: 9 });
+  } catch (err) {
+    return ksOutput_(e, { status: 'error', message: String(err), items: [], orders: [] });
+  } finally {
+    try { lock.releaseLock(); } catch (_) {}
+  }
+}
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000);
+    const body = e && e.parameter && e.parameter.payload
+      ? String(e.parameter.payload)
+      : (e && e.postData && e.postData.contents ? String(e.postData.contents) : '');
+    if (!body) throw new Error('No llegó contenido POST (payload vacío)');
+    let data;
+    try { data = JSON.parse(body); }
+    catch (parseErr) { throw new Error('El POST llegó, pero el cuerpo no es JSON válido: ' + parseErr); }
+
+    const action = String(data.action || 'replaceCatalog');
+
+    // Crear nueva solicitud de pedido desde la tienda pública
+    if (action === 'createOrder') {
+      const ordersSh = ksGetOrdersSheet_();
+      const order = data.order || {};
+      const now = Utilities.formatDate(new Date(), 'America/Lima', 'yyyy-MM-dd HH:mm:ss');
+      const orderId = String(order.id || ('ORD-' + new Date().getTime().toString().slice(-6)));
+      const items = Array.isArray(order.items) ? order.items : [];
+      const totalPairs = items.reduce((a, b) => a + Math.max(1, Number(b.qty) || 1), 0);
+      const totalAmount = items.reduce((a, b) => a + (Number(b.price) || 0) * Math.max(1, Number(b.qty) || 1), 0);
+
+      ordersSh.appendRow([
+        orderId,
+        now,
+        String(order.customerName || 'Cliente Web').trim(),
+        String(order.customerPhone || '').trim(),
+        String(order.deliveryMode || 'Coordinar por WhatsApp').trim(),
+        String(order.paymentMethod || 'Yape / Plin').trim(),
+        String(order.notes || '').trim(),
+        totalPairs,
+        totalAmount,
+        'PENDIENTE',
+        JSON.stringify(items)
+      ]);
+      ksFormatOrdersSheet_(ordersSh, ordersSh.getLastRow() + 1);
+      SpreadsheetApp.flush();
+      return ksJson_({ status: 'success', orderId: orderId, message: 'Solicitud de compra registrada.' });
+    }
+
+    const rawItems = Array.isArray(data.catalog) ? data.catalog : (data.item ? [data.item] : null);
+    if (!rawItems) throw new Error('El campo catalog debe ser una lista de productos');
+    const sh = ksGetSheet_();
+    ksEnsureHeaders_(sh);
+
+    const deletedSet = new Set(
+      Array.isArray(data.deletedSkus)
+        ? data.deletedSkus.map(s => String(s || '').trim().toUpperCase()).filter(Boolean)
+        : []
+    );
+    const bySku = new Map();
+    rawItems.forEach((raw, index) => {
+      const item = ksNormalizeItem_(raw, index);
+      if (!item.sku || deletedSet.has(item.sku)) return;
+      bySku.set(item.sku, item);
+    });
+
+    let folder = null;
+    const rows = [];
+    const imageWarnings = [];
+    const now = Utilities.formatDate(new Date(), 'America/Lima', 'yyyy-MM-dd HH:mm:ss');
+    bySku.forEach(item => {
+      const images = [];
+      item.images.forEach((source, idx) => {
+        try {
+          if (/^data:image\\//i.test(String(source || '')) && !folder) folder = ksGetFolder_();
+          const url = ksPersistImage_(source, item.sku, idx, folder);
+          if (url && !images.includes(url)) images.push(url);
+        } catch (imageErr) {
+          imageWarnings.push(item.sku + ': ' + String(imageErr));
+          if (/^https?:\\/\\//i.test(String(source || '')) && !images.includes(source)) images.push(source);
+        }
+      });
+      const primary = images[0] || '';
+      const formattedStockCell = ksFormatSizesCell_(item.sizes, item.sizeStock);
+      rows.push([item.id, item.sku, item.brand, item.model, item.category, item.price,
+        formattedStockCell, item.equivalence, primary, JSON.stringify(images), now]);
+    });
+
+    sh.clearContents();
+    sh.getRange(1, 1, 1, KS_HEADERS.length).setValues([KS_HEADERS]);
+    if (rows.length) sh.getRange(2, 1, rows.length, KS_HEADERS.length).setValues(rows);
+    ksFormatSheet_(sh, Math.max(2, rows.length + 1));
+    SpreadsheetApp.flush();
+    return ksJson_({ status: 'success', count: rows.length, imageWarnings: imageWarnings.slice(0, 10), message: 'Catálogo y stock sincronizados correctamente.' });
+  } catch (err) {
+    return ksJson_({ status: 'error', message: String(err), stack: err && err.stack ? String(err.stack) : '' });
+  } finally {
+    try { lock.releaseLock(); } catch (_) {}
+  }
+}
+
+function ksReadOrders_(ordersSh) {
+  if (!ordersSh || ordersSh.getLastRow() <= 1) return [];
+  const vals = ordersSh.getDataRange().getValues();
+  const list = [];
+  for (let r = vals.length - 1; r >= 1; r--) {
+    const row = vals[r];
+    if (!row[0]) continue;
+    let items = [];
+    try { items = JSON.parse(String(row[10] || '[]')); } catch (_) { items = []; }
+    list.push({
+      id: String(row[0] || ''),
+      createdAt: String(row[1] || ''),
+      customerName: String(row[2] || 'Cliente'),
+      customerPhone: String(row[3] || ''),
+      deliveryMode: String(row[4] || ''),
+      paymentMethod: String(row[5] || ''),
+      notes: String(row[6] || ''),
+      totalPairs: Number(row[7]) || 0,
+      totalAmount: Number(row[8]) || 0,
+      status: String(row[9] || 'PENDIENTE').trim().toUpperCase(),
+      items: Array.isArray(items) ? items : []
+    });
+  }
+  return list;
+}
+
+function ksUpdateOrderStatus_(sh, ordersSh, orderId, newStatus, discountStock) {
+  if (!orderId) return { status: 'error', message: 'Falta orderId' };
+  const oVals = ordersSh.getDataRange().getValues();
+  let targetRow = -1;
+  let orderItems = [];
+  let prevStatus = '';
+
+  for (let r = 1; r < oVals.length; r++) {
+    if (String(oVals[r][0] || '').trim() === orderId) {
+      targetRow = r + 1;
+      prevStatus = String(oVals[r][9] || '').trim().toUpperCase();
+      try { orderItems = JSON.parse(String(oVals[r][10] || '[]')); } catch (_) { orderItems = []; }
+      break;
+    }
+  }
+  if (targetRow < 0) return { status: 'error', message: 'Pedido no encontrado: ' + orderId };
+
+  ordersSh.getRange(targetRow, 10).setValue(newStatus);
+
+  if (discountStock && prevStatus !== 'CONFIRMADO' && Array.isArray(orderItems) && orderItems.length > 0) {
+    const cVals = sh.getDataRange().getValues();
+    const now = Utilities.formatDate(new Date(), 'America/Lima', 'yyyy-MM-dd HH:mm:ss');
+    for (let r = 1; r < cVals.length; r++) {
+      const rowSku = String(cVals[r][1] || '').trim().toUpperCase();
+      if (!rowSku) continue;
+      const matching = orderItems.filter(it => String(it.sku || '').trim().toUpperCase() === rowSku);
+      if (!matching.length) continue;
+      const parsed = ksParseSizesAndStock_(cVals[r][6]);
+      matching.forEach(it => {
+        const sz = String(it.size || '').trim();
+        const q = Math.max(1, Number(it.qty) || 1);
+        if (sz && parsed.sizeStock[sz]) {
+          parsed.sizeStock[sz] = Math.max(0, parsed.sizeStock[sz] - q);
+          if (parsed.sizeStock[sz] <= 0) delete parsed.sizeStock[sz];
+        }
+      });
+      const updatedSizes = Object.keys(parsed.sizeStock);
+      sh.getRange(r + 1, 7).setValue(ksFormatSizesCell_(updatedSizes, parsed.sizeStock));
+      sh.getRange(r + 1, 11).setValue(now);
+    }
+  }
+  return { status: 'success', orderId: orderId, newStatus: newStatus };
+}
+
+function ksGetOrdersSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('Vincula el script a una hoja de cálculo.');
+  let sh = ss.getSheetByName(KS_ORDERS_SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(KS_ORDERS_SHEET_NAME);
+  }
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, KS_ORDER_HEADERS.length).setValues([KS_ORDER_HEADERS]);
+    ksFormatOrdersSheet_(sh, 2);
+  }
+  return sh;
+}
+
+function ksFormatOrdersSheet_(sh, lastRow) {
+  const head = sh.getRange(1, 1, 1, KS_ORDER_HEADERS.length);
+  head.setBackground('#111113').setFontColor('#D8FF3E').setFontWeight('bold').setHorizontalAlignment('center');
+  sh.setFrozenRows(1);
+  if (lastRow > 2) {
+    sh.getRange(2, 9, lastRow - 2, 1).setNumberFormat('"S/ "#,##0.00');
+  }
+}
+
+function ksParseSizesAndStock_(rawCell) {
+  const sizeStock = {};
+  const str = String(rawCell || '').trim();
+  if (!str) return { sizes: [], sizeStock: {} };
+  
+  if (str.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(str);
+      if (parsed && typeof parsed === 'object') {
+        Object.keys(parsed).forEach(k => {
+          const s = String(k).trim();
+          const q = Math.max(0, Math.floor(Number(parsed[k]) || 0));
+          if (s && q > 0) sizeStock[s] = q;
+        });
+        return { sizes: Object.keys(sizeStock), sizeStock: sizeStock };
+      }
+    } catch (_) {}
+  }
+
+  str.split(/[,;]+/).forEach(tok => {
+    const clean = String(tok || '').trim();
+    if (!clean) return;
+    const parts = clean.split(':');
+    const s = String(parts[0] || '').trim();
+    if (!s) return;
+    const q = parts.length > 1 ? Math.max(0, Math.floor(Number(parts[1]) || 0)) : 1;
+    if (q > 0) sizeStock[s] = (sizeStock[s] || 0) + q;
+  });
+
+  return { sizes: Object.keys(sizeStock), sizeStock: sizeStock };
+}
+
+function ksFormatSizesCell_(sizes, sizeStock) {
+  const stockMap = (sizeStock && typeof sizeStock === 'object') ? sizeStock : {};
+  const list = Array.isArray(sizes) && sizes.length ? sizes : Object.keys(stockMap);
+  return list.map(s => {
+    const key = String(s || '').trim();
+    if (!key) return '';
+    const q = Math.max(1, Math.floor(Number(stockMap[key]) || 1));
+    return key + ':' + q;
+  }).filter(Boolean).join(', ');
+}
+
+function ksNormalizeItem_(raw, index) {
+  raw = raw || {};
+  const sku = String(raw.sku || '').trim().toUpperCase().replace(/\\s+/g, '');
+  const sourceImages = Array.isArray(raw.images) ? raw.images : (Array.isArray(raw.gallery) ? raw.gallery : []);
+  const primary = String(raw.image || raw.primaryImage || '').trim();
+  const images = [...new Set([primary, ...sourceImages.map(x => String(x || '').trim())].filter(Boolean))];
+  
+  const sizeStock = {};
+  if (raw.sizeStock && typeof raw.sizeStock === 'object') {
+    Object.keys(raw.sizeStock).forEach(k => {
+      const s = String(k || '').trim();
+      const q = Math.max(0, Math.floor(Number(raw.sizeStock[k]) || 0));
+      if (s && q > 0) sizeStock[s] = q;
+    });
+  }
+  const rawSizes = Array.isArray(raw.sizes) ? raw.sizes : String(raw.sizes || '').split(',');
+  rawSizes.forEach(entry => {
+    const parts = String(entry || '').trim().split(':');
+    const s = String(parts[0] || '').trim();
+    if (!s) return;
+    if (!(s in sizeStock)) {
+      const q = parts.length > 1 ? Math.max(1, Math.floor(Number(parts[1]) || 1)) : 1;
+      sizeStock[s] = q;
+    }
+  });
+  const sizes = Object.keys(sizeStock);
+
+  return {
+    id: String(raw.id || ('ks-' + sku || 'ks-' + (index + 1))), sku: sku,
+    brand: String(raw.brand || 'Adidas').trim(), model: String(raw.model || '').trim(),
+    category: String(raw.category || '').trim(), price: Math.max(0, Number(raw.price) || 0),
+    sizes: sizes, sizeStock: sizeStock,
+    equivalence: String(raw.equivalence || ''), images: images
+  };
+}
+
+function ksPersistImage_(source, sku, index, folder) {
+  if (!source) return '';
+  if (!/^data:image\\//i.test(source)) return /^https?:\\/\\//i.test(source) ? source : '';
+  const match = source.match(/^data:(image\\/[a-zA-Z0-9.+-]+);base64,([\\s\\S]+)$/);
+  if (!match) return '';
+  const bytes = Utilities.base64Decode(match[2]);
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, bytes)
+    .map(b => ('0' + ((b + 256) % 256).toString(16)).slice(-2)).join('').slice(0, 16);
+  const safeSku = sku.replace(/[^A-Z0-9_-]/g, '_');
+  const mime = match[1].toLowerCase();
+  const ext = mime === 'image/png' ? '.png' : (mime === 'image/webp' ? '.webp' : '.jpg');
+  const name = safeSku + '_' + digest + ext;
+  const existing = folder.getFilesByName(name);
+  let file;
+  if (existing.hasNext()) file = existing.next();
+  else {
+    file = folder.createFile(Utilities.newBlob(bytes, mime, name));
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  }
+  return 'https://drive.google.com/uc?export=view&id=' + file.getId();
+}
+
+function ksGetSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('Vincula el script a una hoja de cálculo.');
+  if (KS_SHEET_NAME) {
+    const named = ss.getSheetByName(KS_SHEET_NAME);
+    if (!named) throw new Error('No existe la pestaña: ' + KS_SHEET_NAME);
+    return named;
+  }
+  const active = ss.getActiveSheet();
+  if (active.getName() === KS_ORDERS_SHEET_NAME) {
+    const all = ss.getSheets();
+    for (let i = 0; i < all.length; i++) {
+      if (all[i].getName() !== KS_ORDERS_SHEET_NAME) return all[i];
+    }
+  }
+  return active;
+}
+
+function ksEnsureHeaders_(sh) {
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, KS_HEADERS.length).setValues([KS_HEADERS]);
+    ksFormatSheet_(sh, 2);
+    return;
+  }
+  const current = sh.getDataRange().getValues();
+  const first = String((current[0] || [])[0] || '').trim().toUpperCase();
+  if (first === 'ID') return;
+
+  const headers = (current[0] || []).map(v => String(v || '').trim().toLowerCase());
+  const findCol = patterns => headers.findIndex(h => patterns.some(p => h.includes(p)));
+  const ix = {
+    sku: findCol(['sku', 'código', 'codigo']), model: findCol(['modelo', 'model']),
+    brand: findCol(['marca', 'brand']), size: findCol(['talla', 'tallas', 'sizes']),
+    price: findCol(['precio', 'price']), primary: findCol(['imagen principal', 'imagen', 'image']),
+    gallery: findCol(['galería', 'galeria', 'gallery']), date: findCol(['fecha', 'date']),
+    id: findCol(['id registro', 'id']), category: findCol(['categoría', 'categoria', 'category']),
+    equiv: findCol(['equivalencia', 'equivalence'])
+  };
+  const grouped = new Map();
+  for (let r = 1; r < current.length; r++) {
+    try {
+      const row = current[r];
+      const sku = ix.sku >= 0 ? String(row[ix.sku] || '').trim().toUpperCase() : '';
+      if (!sku) continue;
+      let item = grouped.get(sku);
+      if (!item) {
+        item = { id: ix.id >= 0 ? String(row[ix.id] || ('ks-' + sku)) : ('ks-' + sku), sku,
+          brand: ix.brand >= 0 ? String(row[ix.brand] || 'Adidas') : 'Adidas',
+          model: ix.model >= 0 ? String(row[ix.model] || '') : '',
+          category: ix.category >= 0 ? String(row[ix.category] || '') : '',
+          price: ix.price >= 0 ? Number(row[ix.price]) || 0 : 0,
+          sizeStock: {}, equivalence: ix.equiv >= 0 ? String(row[ix.equiv] || '') : '', images: [] };
+        grouped.set(sku, item);
+      }
+      if (ix.size >= 0 && row[ix.size] !== '') {
+        const parsed = ksParseSizesAndStock_(row[ix.size]);
+        Object.keys(parsed.sizeStock).forEach(s => {
+          item.sizeStock[s] = (item.sizeStock[s] || 0) + parsed.sizeStock[s];
+        });
+      }
+      const primary = ix.primary >= 0 ? String(row[ix.primary] || '').trim() : '';
+      if (primary && !item.images.includes(primary)) item.images.push(primary);
+      if (ix.gallery >= 0 && row[ix.gallery]) {
+        const rawGallery = String(row[ix.gallery]); let gallery = [];
+        try { gallery = JSON.parse(rawGallery); } catch (_) { gallery = [rawGallery]; }
+        if (!Array.isArray(gallery)) gallery = [String(gallery)];
+        gallery.forEach(url => { url = String(url || '').trim(); if (url && !item.images.includes(url)) item.images.push(url); });
+      }
+    } catch (_) {}
+  }
+  const migrated = Array.from(grouped.values()).map(item => [
+    item.id, item.sku, item.brand, item.model, item.category, item.price,
+    ksFormatSizesCell_(Object.keys(item.sizeStock), item.sizeStock),
+    item.equivalence, item.images[0] || '', JSON.stringify(item.images), 'Migrado'
+  ]);
+  sh.clearContents();
+  sh.getRange(1, 1, 1, KS_HEADERS.length).setValues([KS_HEADERS]);
+  if (migrated.length) sh.getRange(2, 1, migrated.length, KS_HEADERS.length).setValues(migrated);
+  ksFormatSheet_(sh, Math.max(2, migrated.length + 1));
+}
+
+function ksFormatSheet_(sh, lastRow) {
+  const head = sh.getRange(1, 1, 1, KS_HEADERS.length);
+  head.setBackground('#111113').setFontColor('#FFFFFF').setFontWeight('bold').setHorizontalAlignment('center');
+  sh.setFrozenRows(1);
+  sh.setColumnWidth(1, 180); sh.setColumnWidth(2, 110); sh.setColumnWidth(3, 130);
+  sh.setColumnWidth(4, 230); sh.setColumnWidth(5, 150); sh.setColumnWidth(6, 100);
+  sh.setColumnWidth(7, 180); sh.setColumnWidth(8, 240); sh.setColumnWidth(9, 300); sh.setColumnWidth(10, 420); sh.setColumnWidth(11, 170);
+  if (lastRow > 2) {
+    sh.getRange(2, 1, lastRow - 2, KS_HEADERS.length).setBorder(true, true, true, true, true, true, '#d3d3d3', SpreadsheetApp.BorderStyle.SOLID);
+    for (let r = 2; r < lastRow; r++) sh.getRange(r, 1, 1, KS_HEADERS.length).setBackground(r % 2 === 0 ? '#f9f9f9' : '#ffffff');
+    sh.getRange(2, 6, lastRow - 2, 1).setNumberFormat('"S/ "#,##0.00');
+  }
+}
+
+function ksGetFolder_() {
+  const folders = DriveApp.getFoldersByName(KS_FOLDER_NAME);
+  return folders.hasNext() ? folders.next() : DriveApp.createFolder(KS_FOLDER_NAME);
+}
+
+function ksJson_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function ksOutput_(e, obj) {
+  const callback = e && e.parameter ? String(e.parameter.callback || '') : '';
+  if (callback && /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(callback)) {
+    return ContentService.createTextOutput(callback + '(' + JSON.stringify(obj) + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ksJson_(obj);
+}`;
+
+function copyAppsScript() {
+  const ta = document.createElement('textarea');
+  ta.value = APPS_SCRIPT_CODE;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  ta.remove();
+  toast('Código Apps Script v9 copiado al portapapeles');
+}
+
+function requestSheetsJsonp(url, extraParams = {}) {
+  return new Promise((resolve, reject) => {
+    const cb = 'kicksCb_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    let done = false;
+    const script = document.createElement('script');
+    const timer = setTimeout(() => finish(new Error('Tiempo de espera agotado')), 15000);
+    function finish(err, data) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+      err ? reject(err) : resolve(data);
+    }
+    window[cb] = data => finish(null, data);
+    script.onerror = () => finish(new Error('Error de conexión con Apps Script'));
+    const qs = new URLSearchParams({ ...extraParams, callback: cb, t: String(Date.now()) }).toString();
+    script.src = url + (url.includes('?') ? '&' : '?') + qs;
+    document.head.appendChild(script);
+  });
+}
+
+async function syncFromSheets(notify = false) {
+  const url = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  if (!url) {
+    if (notify) toast('Configura primero la URL de Apps Script en Ajustes.');
+    return false;
+  }
+  if (syncBusy) return false;
+  syncBusy = true;
+  const btn = $('syncBtn');
+  btn.disabled = true;
+  try {
+    const data = await requestSheetsJsonp(url);
+    if (!data || data.status !== 'success' || !Array.isArray(data.items)) throw new Error('Respuesta inválida');
+    const remote = data.items
+      .map(normalize)
+      .filter(Boolean)
+      .filter(p => !deletedSkus[p.sku]);
+
+    const hadDeletedInRemote = data.items.some(raw => {
+      const n = normalize(raw);
+      return n && Boolean(deletedSkus[n.sku]);
+    });
+
+    if (Array.isArray(data.orders)) {
+      const prevPending = orders.filter(o => o.status === 'PENDIENTE').length;
+      orders = data.orders;
+      const nowPending = orders.filter(o => o.status === 'PENDIENTE').length;
+      updateOrdersBadges();
+      if (nowPending > prevPending) {
+        toast(`📥 Tienes ${nowPending} ${nowPending === 1 ? 'solicitud de compra pendiente' : 'solicitudes de compra pendientes'}`);
+      }
+      if ($('ordersView') && !$('ordersView').classList.contains('hidden')) {
+        renderOrders();
+      }
+    }
+
+    const merged = new Map(remote.map(p => [p.sku, p]));
+    catalog.forEach(p => {
+      if (!deletedSkus[p.sku]) merged.set(p.sku, p);
+    });
+    catalog = [...merged.values()];
+    persist();
+    renderCatalog();
+    $('catalogSyncLabel').textContent = 'Sincronizado con Google Sheets';
+    if (notify) toast(`Sincronización completada (${catalog.length} productos)`);
+
+    if (hadDeletedInRemote) {
+      pushCatalogToSheets(false);
+    }
+    return true;
+  } catch (err) {
+    if (notify) toast('No se pudo conectar con Google Sheets.');
+    return false;
+  } finally {
+    syncBusy = false;
+    btn.disabled = false;
+  }
+}
+
+async function pushCatalogToSheets(notify = true) {
+  const url = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  if (!url) {
+    if (notify) toast('Configura primero la URL de Google Sheets.');
+    return false;
+  }
+  const expected = catalog.map(normalize).filter(Boolean).filter(p => !deletedSkus[p.sku]);
+  const expectedSkus = new Set(expected.map(p => p.sku));
+  const payload = JSON.stringify({
+    action: 'replaceCatalog', catalog: expected,
+    deletedSkus: Object.keys(deletedSkus), clientVersion: 8
+  });
+  try {
+    // Apps Script suele responder mediante redirección/CORS; no-cors evita interpretar
+    // una respuesta opaca como confirmación. La confirmación real es la lectura JSONP.
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: payload
+    });
+    let verified = false;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, attempt === 0 ? 900 : 1100));
+      const remote = await requestSheetsJsonp(url);
+      if (!remote || remote.status !== 'success' || !Array.isArray(remote.items)) continue;
+      const remoteSkus = new Set(remote.items.map(raw => normalize(raw)).filter(Boolean).map(p => p.sku));
+      const allPresent = [...expectedSkus].every(sku => remoteSkus.has(sku));
+      const deletedAbsent = Object.keys(deletedSkus).every(sku => !remoteSkus.has(String(sku).toUpperCase()));
+      if (allPresent && deletedAbsent) { verified = true; break; }
+    }
+    if (!verified) {
+      $('catalogSyncLabel').textContent = 'Pendiente de verificar en Sheets';
+      if (notify) toast('Google Sheets no confirmó todos los cambios. Revisa Apps Script y vuelve a sincronizar.');
+      return false;
+    }
+    markPendingSync(false);
+    $('catalogSyncLabel').textContent = 'Sincronizado y verificado con Google Sheets';
+    if (notify) toast('Cambios verificados en Google Sheets');
+    return true;
+  } catch (err) {
+    $('catalogSyncLabel').textContent = 'Error de sincronización';
+    if (notify) toast('Guardado localmente, pero no se pudo verificar Google Sheets.');
+    return false;
+  }
+}
+// Drag & Drop support on the Tag Scanner Zone
+const tagDropEl = $('tagDrop');
+['dragenter', 'dragover'].forEach(ev => {
+  tagDropEl.addEventListener(ev, e => {
+    e.preventDefault();
+    tagDropEl.classList.add('border-[#2952ff]');
+  });
+});
+['dragleave', 'drop'].forEach(ev => {
+  tagDropEl.addEventListener(ev, e => {
+    e.preventDefault();
+    tagDropEl.classList.remove('border-[#2952ff]');
+  });
+});
+tagDropEl.addEventListener('drop', async e => {
+  const file = e.dataTransfer?.files?.[0];
+  if (file && file.type.startsWith('image/')) {
+    currentTagRotation = 0;
+    currentTagDataUrl = await compressImage(file, 1600, 0.9);
+    $('ocrToolsBar').classList.remove('hidden');
+    runTagOcrPipeline();
+  }
+});
+
+// Live bindings for form preview
+['sku', 'brand', 'model', 'eanCode'].forEach(id => {
+  $(id).addEventListener('input', updateFormPreview);
+});
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['detailOverlay', 'settingsOverlay', 'rawOcrOverlay', 'batchUrlOverlay', 'dialogOverlay', 'visualCardOverlay'].forEach(closeModal);
+  }
+});
+
+window.addEventListener('online', () => {
+  if (pendingCloudSync) {
+    toast('Conexión recuperada · Sincronizando cambios pendientes con Google Sheets…');
+    pushCatalogToSheets(false);
+  }
+});
+
+// Initialize workspace
+window.onload = function () {
+  if (!localStorage.getItem('kicks_pe_gas_url')) {
+    localStorage.setItem('kicks_pe_gas_url', DEFAULT_GAS_URL);
+  }
+  renderSizes();
+  readStorage();
+  renderCatalog();
+  updateFormPreview();
+  syncFromSheets(false);
+};
+</script>
+</body>
+</html>
