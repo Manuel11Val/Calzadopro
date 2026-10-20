@@ -96,7 +96,7 @@ img { display: block; max-width: 100%; }
 .btn-light { background: #fff; color: var(--ink); border: 1px solid var(--line); }
 .btn-light:hover:not(:disabled) { border-color: rgba(18,18,17,0.3); background: #faf9f5; }
 .btn-acid { background: var(--acid); color: var(--ink); border: 1px solid rgba(18,18,17,0.12); }
-.btn-acid:hover:not(:disabled) { background: #cgee2c; box-shadow: 0 6px 20px rgba(216, 255, 62, 0.45); }
+.btn-acid:hover:not(:disabled) { background: #c8ee2c; box-shadow: 0 6px 20px rgba(216, 255, 62, 0.45); }
 .btn-blue { background: var(--blue); color: #fff; }
 .btn-blue:hover:not(:disabled) { background: #1e42e0; }
 .btn-danger { background: #fff1f2; color: var(--danger); border: 1px solid #fecdd3; }
@@ -377,193 +377,289 @@ img { display: block; max-width: 100%; }
 }
 
 @media (max-width: 820px) {
-  body { padding-bottom: calc(90px + var(--safe-bottom)); }
-  .wrap { padding: 0 14px; }
-  .toast { bottom: calc(88px + var(--safe-bottom)); }
+  body { padding-bottom: calc(96px + var(--safe-bottom)); }
+  .wrap { padding: 0 12px; }
+  .toast { bottom: calc(90px + var(--safe-bottom)); }
+  .field input, .field select, .field textarea { font-size: 16px; } /* Evita auto-zoom en iOS Safari */
+  .overlay { padding: 10px; align-items: flex-end; }
+  .modal {
+    max-height: calc(90dvh - var(--safe-top));
+    border-radius: 24px 24px 20px 20px;
+  }
+  .product-photo { padding: 10px; aspect-ratio: 1.08 / 1; }
+  .panel { border-radius: 20px; padding: 16px; }
+}
+@media (max-width: 420px) {
+  .ios-dock { width: 100%; padding: 5px; }
+  .ios-tab { font-size: 9.5px; padding: 7px 4px; }
+  .chip { padding: 7px 13px; font-size: 11px; }
 }
 
 .print-lookbook { display: none; }
 
 @media print {
-  @page { size: A4 portrait; margin: 7mm; }
+  @page { size: A4 portrait; margin: 4.5mm; }
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
   html, body {
     background: #ffffff !important;
     color: #121211 !important;
     padding: 0 !important;
     margin: 0 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    width: 100% !important;
   }
-  .no-print, #catalogView, #editorView, #ordersView, .topbar, .overlay, .toast {
+  .no-print, #catalogView, #editorView, #ordersView, .topbar, .overlay, .toast, footer {
     display: none !important;
   }
-  .wrap { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+  .wrap, main.wrap { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
   .print-lookbook {
     display: block !important;
-    width: 100%;
+    width: 100% !important;
   }
+  /* PORTADA EDITORIAL DE ALTO IMPACTO */
   .print-cover {
-    min-height: 280mm;
+    height: 285mm;
+    max-height: 285mm;
     page-break-after: always;
     break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
-    background: #111111;
-    color: #ffffff;
-    padding: 15mm;
+    background-color: #10100f !important;
+    color: #ffffff !important;
+    padding: 10mm 11mm;
     position: relative;
-    border-radius: 4mm;
+    border-radius: 3.5mm;
+    border: 2px solid #121211;
   }
-  .print-cover-kicker { font-size: 10px; font-weight: 800; letter-spacing: .26em; text-transform: uppercase; color: #d8ff3e; }
-  .print-cover-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 54px; line-height: .9; letter-spacing: -.06em; text-transform: uppercase; max-width: 165mm; }
-  .print-cover-sub { font-size: 11px; line-height: 1.55; letter-spacing: .12em; text-transform: uppercase; color: #d0d0ca; max-width: 125mm; }
+  .print-cover-kicker { font-size: 10px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; color: #d8ff3e !important; }
+  .print-cover-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 48px; line-height: .88; letter-spacing: -.05em; text-transform: uppercase; color: #ffffff !important; margin: 0; }
+  .print-cover-sub { font-size: 10.5px; line-height: 1.4; letter-spacing: .08em; text-transform: uppercase; color: #d0d0c8 !important; max-width: 170mm; margin-top: 2mm; font-weight: 700; }
   .print-cover-hero {
-    height: 122mm;
+    height: 154mm;
+    max-height: 154mm;
+    display: grid;
+    grid-template-columns: 1.32fr 0.68fr;
+    overflow: hidden;
+    background-color: #f4f3ee !important;
+    margin: 3mm 0;
+    border-radius: 3.5mm;
+    position: relative;
+    border: 2.5px solid #d8ff3e;
+    color: #121211 !important;
+  }
+  .print-cover-hero-photo {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 4mm;
+    background-color: #f4f3ee !important;
+    border-right: 2px solid #121211;
     overflow: hidden;
-    background: #f4f3ee;
-    margin: 7mm 0;
-    border-radius: 4mm;
-    position: relative;
-    border: 2px solid #d8ff3e;
   }
-  .print-cover-hero img { width: 92%; height: 92%; object-fit: contain; mix-blend-mode: multiply; }
-  .print-cover-badge {
-    position: absolute;
-    top: 6mm;
-    left: 6mm;
-    background: #121211;
-    color: #d8ff3e;
-    padding: 3mm 4.5mm;
-    border-radius: 2mm;
-    font: 700 10px 'JetBrains Mono', monospace;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+  .print-cover-hero-photo img {
+    width: 96% !important;
+    height: 136mm !important;
+    max-width: 96% !important;
+    max-height: 136mm !important;
+    object-fit: contain !important;
+    mix-blend-mode: multiply;
+    transform: scale(1.06);
   }
-  .print-cover-price-pill {
-    position: absolute;
-    bottom: 6mm;
-    right: 6mm;
-    background: #d8ff3e;
-    color: #121211;
-    border: 2px solid #121211;
-    padding: 3mm 5mm;
-    border-radius: 3mm;
-    font: 700 22px 'Space Grotesk', sans-serif;
-  }
-  .print-cover-meta { display:flex; justify-content:space-between; gap:12px; border-top:1px solid #333; padding-top:6mm; color:#d0d0ca; font: 9px 'JetBrains Mono',monospace; text-transform:uppercase; }
-  .print-page {
-    page-break-after: always;
-    break-after: page;
-    min-height: 280mm;
+  .print-cover-hero-specs {
+    background-color: #161615 !important;
+    color: #ffffff !important;
+    padding: 6mm;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    overflow: hidden;
+  }
+  .print-cover-badge {
+    position: absolute;
+    top: 4mm;
+    left: 4mm;
+    z-index: 2;
+    background-color: #121211 !important;
+    color: #d8ff3e !important;
+    padding: 2.2mm 4mm;
+    border-radius: 2mm;
+    font: 800 10px 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .print-cover-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    border-top: 1.5px solid #333330;
+    padding-top: 3.5mm;
+    color: #d0d0ca !important;
+    font: 700 9px 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+  }
+  /* PÁGINA INTERIOR 6 PARES PROTAGONISTAS (2 COLUMNAS x 3 FILAS) */
+  .print-page {
+    height: 285mm;
+    max-height: 285mm;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    background: #ffffff !important;
   }
   .print-page:last-child {
     page-break-after: auto;
     break-after: auto;
   }
   .print-header {
+    height: 12mm;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #121211;
-    color: #ffffff;
-    padding: 4.5mm 6mm;
-    border-radius: 3mm;
-    margin-bottom: 5mm;
+    background-color: #121211 !important;
+    color: #ffffff !important;
+    padding: 2mm 4.5mm;
+    border-radius: 2.2mm;
+    margin-bottom: 2mm;
+    flex-shrink: 0;
   }
   .print-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4.5mm;
+    grid-template-rows: repeat(3, 86mm);
+    gap: 2.4mm 2.8mm;
+    flex: 1;
     align-items: stretch;
   }
   .print-card {
-    border: 1.5px solid #121211;
-    border-radius: 3.5mm;
+    height: 86mm;
+    max-height: 86mm;
+    border: 1.8px solid #121211;
+    border-radius: 2.8mm;
     overflow: hidden;
-    page-break-inside: avoid;
-    break-inside: avoid;
-    background: #ffffff;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    background-color: #ffffff !important;
     display: flex;
     flex-direction: column;
     position: relative;
   }
   .print-card-top {
+    height: 6.8mm;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 2.8mm 4mm;
-    background: #121211;
-    color: #ffffff;
+    padding: 0 3mm;
+    background-color: #121211 !important;
+    color: #ffffff !important;
+    flex-shrink: 0;
   }
   .print-card-photo {
-    height: 62mm;
-    background: #f4f3ee;
+    height: 52mm;
+    max-height: 52mm;
+    background-color: #f4f3ee !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4mm;
+    padding: 1.5mm 3mm;
     position: relative;
     border-bottom: 1.5px solid #121211;
+    overflow: hidden;
+    flex-shrink: 0;
   }
   .print-card-photo img {
-    height: 100%;
-    width: 100%;
-    object-fit: contain;
+    width: 96% !important;
+    height: 48.5mm !important;
+    max-width: 96% !important;
+    max-height: 48.5mm !important;
+    object-fit: contain !important;
     mix-blend-mode: multiply;
+    transform: scale(1.07);
   }
   .print-card-body {
-    padding: 3.8mm 4mm 4mm;
+    padding: 2mm 3mm 2mm;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    flex: 1;
     justify-content: space-between;
+    flex: 1;
+    overflow: hidden;
+    background-color: #ffffff !important;
   }
   .print-sizes {
     display: flex;
     flex-wrap: wrap;
-    gap: 3.5px;
+    gap: 3px;
+    align-items: center;
   }
   .print-size-pill {
-    border: 1px solid #121211;
-    background: #f4f3ee;
-    color: #121211;
+    border: 1.3px solid #121211;
+    background-color: #f4f3ee !important;
+    color: #121211 !important;
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
-    font-size: 8.5px;
+    font-size: 9.2px;
     padding: 2px 5.5px;
-    border-radius: 3px;
+    border-radius: 2.5px;
+    line-height: 1.1;
+  }
+  .print-size-pill-low {
+    border: 1.3px solid #121211;
+    background-color: #d8ff3e !important;
+    color: #121211 !important;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 9.2px;
+    padding: 2px 5.5px;
+    border-radius: 2.5px;
+    line-height: 1.1;
+  }
+  .print-spec-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    background-color: #121211 !important;
+    color: #ffffff !important;
+    border-radius: 2px;
+    padding: 2.5px 6px;
+    font: 700 7.6px/1.15 'JetBrains Mono', monospace;
   }
   .print-price-tag {
-    background: #d8ff3e;
-    color: #121211;
-    border: 1.5px solid #121211;
-    border-radius: 5px;
-    padding: 4px 8px;
+    background-color: #d8ff3e !important;
+    color: #121211 !important;
+    border: 1.8px solid #121211;
+    border-radius: 4px;
+    padding: 3px 8px;
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     font-size: 18px;
     line-height: 1;
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .print-footer {
-    margin-top: 4mm;
-    padding-top: 3mm;
+    height: 6.5mm;
+    padding-top: 1.5mm;
     border-top: 1.5px solid #121211;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font: 700 8.5px 'JetBrains Mono', monospace;
-    color: #121211;
+    font: 800 8px 'JetBrains Mono', monospace;
+    color: #121211 !important;
     text-transform: uppercase;
+    flex-shrink: 0;
   }
 }
 </style>
@@ -597,9 +693,9 @@ img { display: block; max-width: 100%; }
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
         <span class="hidden sm:inline">Sheets</span>
       </button>
-      <button class="btn btn-light hidden sm:inline-flex" onclick="printCatalog()">
+      <button class="btn btn-light !px-3" onclick="printCatalog()" title="Generar PDF / Catálogo">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14" rx="1"/></svg>
-        <span class="hidden lg:inline">PDF / Catálogo</span>
+        <span class="hidden md:inline">PDF / Catálogo</span>
       </button>
       <button class="btn btn-acid" onclick="newProduct()">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
@@ -613,28 +709,30 @@ img { display: block; max-width: 100%; }
 </header>
 
 <main class="wrap pt-5">
-  <section id="heroSection" class="no-print flex flex-wrap items-center justify-between gap-4 mb-6 p-4 sm:px-6 rounded-2xl bg-[#161715] text-white">
-    <div class="flex items-center gap-3">
-      <span class="w-2.5 h-2.5 rounded-full bg-[#d8ff3e] animate-pulse"></span>
-      <div>
-        <h1 class="font-display font-bold text-lg sm:text-xl tracking-tight leading-none">ARCHIVO DE CALZADO & ESCÁNER</h1>
-        <p id="catalogSyncLabel" class="text-[11px] text-[#9b9a92] mt-0.5">Almacenamiento local listo</p>
+  <section id="heroSection" class="no-print flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-5 p-3.5 sm:px-6 rounded-2xl bg-[#161715] text-white">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <span class="w-2.5 h-2.5 rounded-full bg-[#d8ff3e] animate-pulse flex-shrink-0"></span>
+      <div class="min-w-0">
+        <h1 class="font-display font-bold text-base sm:text-xl tracking-tight leading-none truncate">ARCHIVO DE CALZADO & ESCÁNER</h1>
+        <p id="catalogSyncLabel" class="text-[10.5px] sm:text-[11px] text-[#9b9a92] mt-0.5 truncate">Almacenamiento local listo</p>
       </div>
     </div>
-    <div class="flex items-center gap-6">
-      <div>
-        <strong id="heroCount" class="block font-display text-xl font-bold leading-none">0</strong>
-        <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Pares</span>
+    <div class="flex flex-wrap items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full sm:w-auto pt-2.5 sm:pt-0 border-t border-white/10 sm:border-0">
+      <div class="flex items-center gap-4 sm:gap-6">
+        <div>
+          <strong id="heroCount" class="block font-display text-lg sm:text-xl font-bold leading-none">0</strong>
+          <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Pares</span>
+        </div>
+        <div>
+          <strong id="heroBrands" class="block font-display text-lg sm:text-xl font-bold leading-none">0</strong>
+          <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Marcas</span>
+        </div>
+        <div>
+          <strong id="heroTotalValue" class="block font-display text-lg sm:text-xl font-bold leading-none text-[#d8ff3e]">S/ 0</strong>
+          <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Valor</span>
+        </div>
       </div>
-      <div>
-        <strong id="heroBrands" class="block font-display text-xl font-bold leading-none">0</strong>
-        <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Marcas</span>
-      </div>
-      <div>
-        <strong id="heroTotalValue" class="block font-display text-xl font-bold leading-none text-[#d8ff3e]">S/ 0</strong>
-        <span class="text-[9px] font-extrabold tracking-widest uppercase text-[#9b9a92]">Valor</span>
-      </div>
-      <button class="btn btn-acid !py-2 !px-3.5" onclick="newProduct(); setTimeout(()=>document.getElementById('tagInput').click(), 100)">
+      <button class="btn btn-acid !py-2 !px-3.5 !text-[11.5px]" onclick="newProduct(); setTimeout(()=>document.getElementById('tagInput').click(), 100)">
         ⌗ Escanear Etiqueta
       </button>
     </div>
@@ -685,7 +783,7 @@ img { display: block; max-width: 100%; }
 
     <div class="chips-scroll !pb-3 no-print" id="sizeChips"></div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 mt-2" id="catalogGrid"></div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mt-2" id="catalogGrid"></div>
 
     <div id="catalogEmpty" class="bg-white border border-dashed border-black/20 rounded-[24px] py-12 px-5 text-center my-4">
       <div class="w-12 h-12 rounded-2xl bg-[#f4f3ee] mx-auto grid place-items-center font-display font-bold text-lg text-[#6e6d66]">K.</div>
@@ -848,8 +946,14 @@ img { display: block; max-width: 100%; }
         <form id="productForm" onsubmit="saveProduct(event)">
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
             <div class="field sm:col-span-4">
-              <label for="sku"><span>Código SKU / ART *</span><span class="text-[#2952ff] font-mono-code">ID</span></label>
-              <input id="sku" required maxlength="40" autocomplete="off" placeholder="Ej. JQ6925, JI0278" class="font-mono-code uppercase">
+              <label for="sku">
+                <span>Código SKU / ART *</span>
+                <button type="button" class="text-[10px] text-[#2952ff] font-extrabold hover:underline" onclick="assignAutoInternalSku()" title="Generar código correlativo para modelos sin etiqueta">⚡ Sin etiqueta / Auto-código</button>
+              </label>
+              <div class="flex gap-1.5">
+                <input id="sku" maxlength="40" autocomplete="off" placeholder="Ej. KZ6845 o vacío (Auto)" class="font-mono-code uppercase flex-1">
+                <button type="button" class="btn btn-light !px-2.5 !py-0 h-[44px] text-xs font-mono-code" onclick="assignAutoInternalSku()" title="Rellenar con siguiente código correlativo KS-XXXX">#</button>
+              </div>
             </div>
 
             <div class="field sm:col-span-4">
@@ -1154,7 +1258,7 @@ img { display: block; max-width: 100%; }
       <div class="flex flex-wrap gap-2">
         <button class="btn btn-dark" onclick="saveSettings()">Guardar ajustes</button>
         <button class="btn btn-light" onclick="syncFromSheets(true)">↻ Sincronizar ahora</button>
-        <button class="btn btn-light" onclick="copyAppsScript()">📋 Copiar código Apps Script v9</button>
+        <button class="btn btn-light" onclick="copyAppsScript()">📋 Copiar código Apps Script v10</button>
       </div>
     </div>
   </div>
@@ -1175,9 +1279,11 @@ const DEFAULT_EUR_SIZES = [
 const STORAGE_KEY = 'kicks_peru_catalog_v1';
 const DELETED_SKUS_KEY = 'kicks_peru_deleted_skus_v1';
 const PENDING_SYNC_KEY = 'kicks_peru_pending_sync_v1';
+const HERO_SKU_KEY = 'kicks_peru_hero_sku_v1';
 const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxPX3GxHo1YP_7LJ6p9jTxO4Wx0fmN4kR1uMxDMiKF4icQain_0FdGEx5SM9_a2WS3x/exec';
 
 let catalog = [];
+let featuredHeroSku = ''; // SKU elegido manualmente como Portada / Hero del Catálogo PDF
 let deletedSkus = {}; // Tombstone map: { [SKU]: timestamp } so deleted items never resurrect from Sheets
 let pendingCloudSync = false;
 let activeBrand = 'Todos';
@@ -1338,11 +1444,12 @@ function normalizeSizeToken(rawToken, isEur = false) {
   t = t.replace(/\b(\d{1,2})\s*1\s*[\/|1I]\s*2\b/g, '$1 1/2');
   t = t.replace(/\b(\d{1,2})1\/2\b/g, '$1 1/2');
   if (!isEur) {
-    t = t.replace(/^([4-9]|1[0-3])12$/, '$1.5');
-    t = t.replace(/^(\d{1,2})\s+1\/2$/, '$1.5');
+    t = t.replace(/^([3-9]|1[0-3])12$/, '$1 1/2');
+    t = t.replace(/^(\d{1,2})\.5$/, '$1 1/2');
   } else {
-    t = t.replace(/^([34]\d)23$/, '$1 2/3');
-    t = t.replace(/^([34]\d)13$/, '$1 1/3');
+    t = t.replace(/^([34]\d)2[38]$/, '$1 2/3');
+    t = t.replace(/^([34]\d)1[38]$/, '$1 1/3');
+    t = t.replace(/^([34]\d)12$/, '$1.5');
     t = t.replace(/^(\d{2})\.[67]$/, '$1 2/3').replace(/^(\d{2})\.3$/, '$1 1/3');
     t = t.replace(/^(\d{2})\s+1\/2$/, '$1.5');
   }
@@ -1391,16 +1498,16 @@ function parseSneakerLabel(rawText, zonalData = null) {
   const upperLines = cleanLines.map(l => l.toUpperCase());
   const fullUpper = upperLines.join('\n');
 
-  // BRAND
-  if (/\bADIDAS\b|A\s*D\s*I\s*D\s*A\s*S|\bULTRARUN\b|\bTERREX\b|\bORIGINALS\b|\bFORUM\s*2000\b|\bRESPONSE\s*RUNNER\b/i.test(fullUpper)) {
+  // BRAND DETECTION
+  if (/\bADIDAS\b|A\s*D\s*I\s*D\s*A\s*S|\bADIZERO\b|\bHOOPS\b|\bPREDATOR\b|\bULTRARUN\b|\bTERREX\b|\bORIGINALS\b|\bFORUM\b|\bRESPONSE\b|\bTENSAUR\b|\bRUNFALCON\b|\bGOLETTO\b|\bQUESTAR\b|\bCAMPUS\b|\bF50\b/i.test(fullUpper)) {
     result.brand = 'Adidas';
-  } else if (/\bNIKE\b|\bSWOOSH\b|\bAIR\s*MAX\b|\bDUNK\b/i.test(fullUpper)) {
+  } else if (/\bNIKE\b|\bSWOOSH\b|\bAIR\s*MAX\b|\bDUNK\b|\bPHANTOM\b/i.test(fullUpper)) {
     result.brand = 'Nike';
   } else if (/\bJORDAN\b|\bJUMPMAN\b/i.test(fullUpper)) {
     result.brand = 'Jordan';
   } else if (/\bNEW\s*BALANCE\b/i.test(fullUpper)) {
     result.brand = 'New Balance';
-  } else if (/\bPUMA\b/i.test(fullUpper)) {
+  } else if (/\bPUMA\b|\bATTACANTO\b/i.test(fullUpper)) {
     result.brand = 'Puma';
   } else if (/\bASICS\b/i.test(fullUpper)) {
     result.brand = 'Asics';
@@ -1408,19 +1515,24 @@ function parseSneakerLabel(rawText, zonalData = null) {
     result.brand = 'Reebok';
   }
 
-  // EAN-13
-  const eanRegex = /\b([0-9]\s*[0-9]{5,6}\s*[0-9]{5,6}[0-9]?)\b/g;
-  let em;
-  while ((em = eanRegex.exec(fullUpper)) !== null) {
-    const digits = em[1].replace(/\D/g, '');
-    if (digits.length === 13 || digits.length === 12) {
-      result.ean = digits;
-      break;
+  // EAN-13 / UPC (e.g., 4 069991 308805, 4 067904 482345, 4 067907 660153)
+  const eanSpacedMatch = fullUpper.match(/\b([34]\s*\d{6}\s*\d{6})\b/);
+  if (eanSpacedMatch) {
+    result.ean = eanSpacedMatch[1].replace(/\D/g, '');
+  } else {
+    const eanRegex = /\b([0-9]\s*[0-9]{5,6}\s*[0-9]{5,6}[0-9]?)\b/g;
+    let em;
+    while ((em = eanRegex.exec(fullUpper)) !== null) {
+      const digits = em[1].replace(/\D/g, '');
+      if (digits.length === 13 || digits.length === 12) {
+        result.ean = digits;
+        break;
+      }
     }
   }
 
-  // SKU
-  const badPrefixes = new Set(['AD', 'HE', 'IN', 'WO', 'UN', 'KI', 'RU', 'CO', 'TR', 'OR', 'EA', 'PO', 'CH', 'UM', 'EU', 'UK', 'US', 'MM']);
+  // SKU EXTRACTION (Optimized for Adidas Hangtags: KZ6845, JI3470, JI1134, IE3750, GX3535, JQ6925, etc.)
+  const badPrefixes = new Set(['AD', 'HE', 'IN', 'WO', 'UN', 'KI', 'RU', 'CO', 'TR', 'OR', 'EA', 'PO', 'CH', 'UM', 'EU', 'UK', 'US', 'MM', 'VI', 'ET', 'NA', 'FO', 'BA', 'SO', 'PI', 'ED']);
   const skuCandidates = [];
 
   const scanLinesForSku = (linesArr, boost = 0) => {
@@ -1429,23 +1541,28 @@ function parseSneakerLabel(rawText, zonalData = null) {
       tokens.forEach(tok => {
         if (tok.length === 6) {
           let p1 = tok[0], p2 = tok[1], rest = tok.slice(2);
+          if (p1 === '1') p1 = 'I';
           if (p1 === 'J' && p2 === '1') p2 = 'I';
           if (p1 === 'J' && p2 === '0') p2 = 'Q';
+          if (p1 === 'K' && p2 === '2') p2 = 'Z';
+          if (p1 === 'I' && p2 === '3') p2 = 'E';
           const prefix = p1 + p2;
-          const digits = rest.replace(/O/g, '0').replace(/[IL]/g, '1').replace(/S/g, '5').replace(/B/g, '8');
+          const digits = rest.replace(/O/g, '0').replace(/[IL]/g, '1').replace(/Z/g, '2').replace(/S/g, '5').replace(/G/g, '6').replace(/B/g, '8');
           if (/^[A-Z]{2}$/.test(prefix) && /^\d{4}$/.test(digits) && !badPrefixes.has(prefix)) {
             if (prefix === 'UM' && line.includes('FORUM')) return;
-            let score = 25 + boost;
+            let score = 28 + boost;
+            const prevLine = idx > 0 ? linesArr[idx - 1] : '';
+            const nextLine = idx + 1 < linesArr.length ? linesArr[idx + 1] : '';
             const ctx = linesArr.slice(Math.max(0, idx - 2), Math.min(linesArr.length, idx + 3)).join(' ');
             if (/\b(SKU|ART(?:ICLE)?|ARTICLE NO|STYLE|ITEM)\b/.test(ctx)) score += 38;
-            if (/\b(WOMEN|UNISEX|KIDS|MEN)\b/.test(ctx)) score += 5;
-            if (/\b(EAN|UPC|EUR|UK|US|MM|MADE IN|INDONESIA|VIETNAM)\b/.test(ctx)) score -= 8;
-            if (line.trim() === tok) score += 12;
+            if (/\b(WOMEN|UNISEX|KIDS|MEN)\b/.test(prevLine) || /\b(WOMEN|UNISEX|KIDS|MEN)\b/.test(ctx)) score += 26;
+            if (/\b(690|700|EAN)\b/.test(nextLine) || /\b(690|700|EAN)\b/.test(ctx)) score += 22;
+            if (line.trim() === tok) score += 16;
             skuCandidates.push({ sku: prefix + digits, score });
           }
         }
         if (/^[A-Z]{2}\d{4}-\d{3}$/.test(tok)) {
-          skuCandidates.push({ sku: tok, score: 45 + boost });
+          skuCandidates.push({ sku: tok, score: 50 + boost });
         }
       });
     });
@@ -1453,17 +1570,14 @@ function parseSneakerLabel(rawText, zonalData = null) {
 
   if (zonalData?.rightColText) {
     const rightLines = stripMarginNoise(zonalData.rightColText).toUpperCase().split(/\n+/).map(s => s.trim()).filter(Boolean);
-    scanLinesForSku(rightLines, 25);
+    scanLinesForSku(rightLines, 30);
   }
   scanLinesForSku(upperLines, 0);
 
-  // Collapse duplicate detections across OCR zones, then refuse near-ties instead of guessing.
   const skuScores = new Map();
   skuCandidates.forEach(c => skuScores.set(c.sku, Math.max(skuScores.get(c.sku) || 0, c.score)));
   const rankedSkus = [...skuScores.entries()].map(([sku, score]) => ({ sku, score })).sort((a, b) => b.score - a.score);
-  if (rankedSkus.length === 1 && rankedSkus[0].score >= 25) {
-    result.sku = rankedSkus[0].sku;
-  } else if (rankedSkus.length > 1 && rankedSkus[0].score >= 35 && rankedSkus[0].score - rankedSkus[1].score >= 12) {
+  if (rankedSkus.length >= 1 && rankedSkus[0].score >= 25) {
     result.sku = rankedSkus[0].sku;
   }
 
@@ -1471,28 +1585,32 @@ function parseSneakerLabel(rawText, zonalData = null) {
   const genders = [];
   if (/\bWOMEN\b|\bMUJER\b|\bWMNS\b/.test(fullUpper)) genders.push('WOMEN');
   else if (/\bUNISEX\b/.test(fullUpper)) genders.push('UNISEX');
-  else if (/\bKIDS\b|\bJUNIOR\b/.test(fullUpper)) genders.push('KIDS');
+  else if (/\bKIDS\b|\bJUNIOR\b|\bINFANT\b/.test(fullUpper)) genders.push('KIDS');
   else if (/\bMEN\b|\bHOMBRE\b/.test(fullUpper)) genders.push('MEN');
 
   const cats = [];
   if (/\bTRAIL\s*RUNNING\b/.test(fullUpper)) cats.push('TRAIL RUNNING');
   else if (/\bRUNNING\b|\bCOURSE\s*A\s*PIED\b/.test(fullUpper)) cats.push('RUNNING');
+  if (/\bBASKETBALL\b|\bBASQUET\b/.test(fullUpper)) cats.push('BASKETBALL');
+  if (/\bFOOTBALL\b|\bSOCCER\b|\bFUTBOL\b/.test(fullUpper)) cats.push('FOOTBALL');
   if (/\bORIGINALS\b/.test(fullUpper)) cats.push('ORIGINALS');
-  if (/\bTERREX\b/.test(fullUpper) && !cats.includes('TRAIL RUNNING')) cats.push('OUTDOOR');
+  if (/\bTERREX\b|\bOUTDOOR\b/.test(fullUpper) && !cats.includes('TRAIL RUNNING')) cats.push('OUTDOOR');
+  if (/\bTENNIS\b|\bCOURT\b/.test(fullUpper)) cats.push('TENNIS');
+  if (/\bTRAINING\b|\bGYM\b/.test(fullUpper)) cats.push('TRAINING');
   result.category = [...genders, ...cats].join(' • ');
 
   // MODEL LINE EXTRACTION
   const isNonModelLine = l => {
     const t = l.trim();
     if (t.length < 3) return true;
-    return /^(ADIDAS|NIKE|PUMA|REEBOK|NEW BALANCE|HECHO\b.*|MADE\b.*|INDONESIA|VIETNAM|CHINA|RUNNING|COURSE\b.*|TRAIL RUNNING|ORIGINALS|WOMEN|MEN|UNISEX|KIDS|EAN|700|D\s+UK.*|US\s+J.*)$/.test(t)
+    return /^(ADIDAS|NIKE|PUMA|REEBOK|NEW BALANCE|HECHO\b.*|MADE\b.*|INDONESIA|VIETNAM|CHINA|INDIA|CAMBODIA|RUNNING|COURSE\b.*|BASKETBALL|FOOTBALL.*|SOCCER.*|TRAIL RUNNING|ORIGINALS|WOMEN|MEN|UNISEX|KIDS|EAN|690|700|D\s+UK.*|US\s+J.*)$/.test(t)
       || new RegExp('^' + (result.sku || 'XXXXXX') + '$').test(t)
       || /^\d[\d\s/.,½⅓⅔%-]*$/.test(t);
   };
 
   const findModelInLines = linesList => {
     const bIdx = linesList.findIndex(l => /\bADIDAS\b|\bNIKE\b|\bPUMA\b/.test(l));
-    const oIdx = linesList.findIndex(l => /\bHECHO\b|\bMADE\b|\bINDONESIA\b|\bVIETNAM\b/.test(l));
+    const oIdx = linesList.findIndex(l => /\bHECHO\b|\bMADE\b|\bINDONESIA\b|\bVIETNAM\b|\bCHINA\b/.test(l));
 
     if (bIdx >= 0) {
       const limit = oIdx > bIdx ? oIdx : Math.min(linesList.length, bIdx + 3);
@@ -1530,24 +1648,7 @@ function parseSneakerLabel(rawText, zonalData = null) {
       .trim();
   }
 
-  // Explicit unit/value pairs are more reliable than guessing a number elsewhere on the label.
-  const explicitEur = fullUpper.match(/\b(?:EUR|EURO|FR)\s*[:：-]?\s*(3[3-9]|4[0-9])(?:\s*(?:1\s*\/\s*3|2\s*\/\s*3|1\s*\/\s*2|[.,]\d|[⅓⅔½]))?\b/);
-  if (explicitEur) {
-    const value = explicitEur[0].replace(/^.*?\b(?:EUR|EURO|FR)\s*[:：-]?\s*/,'').trim();
-    result.eur = normalizeSizeToken(value, true);
-  }
-  const explicitUk = fullUpper.match(/\bUK\s*[:：-]?\s*(\d{1,2}(?:\s*(?:1\s*\/\s*2|[½]|[.,]5))?)\b/);
-  if (explicitUk) {
-    const n = parseFloat(explicitUk[1].replace(',', '.'));
-    if (n >= 2 && n <= 15) result.uk = normalizeSizeToken(explicitUk[1], false);
-  }
-  const explicitUs = fullUpper.match(/\bUS\s*[:：-]?\s*(\d{1,2}(?:\s*(?:1\s*\/\s*2|[½]|[.,]5))?)\b/);
-  if (explicitUs) {
-    const n = parseFloat(explicitUs[1].replace(',', '.'));
-    if (n >= 3 && n <= 16) result.us = normalizeSizeToken(explicitUs[1], false);
-  }
-
-  // SIZE MATRIX PARSER
+  // SIZE MATRIX PARSER (3-column Adidas Hangtag grid)
   const matrixSource = zonalData?.matrixText
     ? stripMarginNoise(zonalData.matrixText).toUpperCase() + '\n' + fullUpper
     : fullUpper;
@@ -1563,14 +1664,17 @@ function parseSneakerLabel(rawText, zonalData = null) {
         const valLine = mLines[i - back];
         if (valLine.replace(/\D/g, '').length >= 10) continue;
         const toks = [...valLine.matchAll(sizeTokRe)].map(m => m[1]);
-        if (toks.length >= 2) {
+        if (toks.length >= 1) {
           const eurCandidate = toks[toks.length - 1];
-          const eurNum = parseFloat(eurCandidate);
-          if (eurNum >= 33 && eurNum <= 49) {
-            result.eur = normalizeSizeToken(eurCandidate, true);
-            const ukCandidate = toks[toks.length - 2];
-            if (parseFloat(ukCandidate) >= 2 && parseFloat(ukCandidate) <= 15) {
-              result.uk = normalizeSizeToken(ukCandidate, false);
+          const normalizedEur = normalizeSizeToken(eurCandidate, true);
+          const eurNum = parseFloat(normalizedEur);
+          if (eurNum >= 28 && eurNum <= 50) {
+            result.eur = normalizedEur;
+            if (toks.length >= 2) {
+              const ukCandidate = toks[toks.length - 2];
+              if (parseFloat(ukCandidate) >= 1 && parseFloat(ukCandidate) <= 15) {
+                result.uk = normalizeSizeToken(ukCandidate, false);
+              }
             }
             break;
           }
@@ -1587,17 +1691,17 @@ function parseSneakerLabel(rawText, zonalData = null) {
 
         const mmToks = toks.filter(t => {
           const n = parseInt(t, 10);
-          return /^\d{3}$/.test(t.trim()) && n >= 195 && n <= 315 && n !== 700;
+          return /^\d{3}$/.test(t.trim()) && n >= 180 && n <= 320 && n !== 690 && n !== 700;
         });
         if (mmToks.length > 0 && !result.cm) {
           const mmVal = parseInt(mmToks[mmToks.length - 1], 10);
           result.cm = `${(mmVal / 10).toFixed(1).replace(/\.0$/, '')} CM (${mmVal} MM)`;
         }
 
-        if (toks.length >= 2 && !result.us) {
+        if (toks.length >= 1 && !result.us) {
           const usTok = normalizeSizeToken(toks[0], false);
           const usNum = parseFloat(usTok);
-          if (usNum >= 3 && usNum <= 16 && !/^\d{3}$/.test(toks[0].trim())) {
+          if (usNum >= 1 && usNum <= 16 && !/^\d{3}$/.test(toks[0].trim())) {
             result.us = usTok;
           }
         }
@@ -1606,25 +1710,24 @@ function parseSneakerLabel(rawText, zonalData = null) {
   }
 
   if (!result.uk) {
-    const idx700 = upperLines.findIndex(l => /\b700\b/.test(l));
-    if (idx700 > 0) {
-      const lineAbove = upperLines[idx700 - 1];
-      const ukM = lineAbove.match(/\b(\d{1,2}(?:\s*1\/2|[½]|\.5)?)\b/);
-      if (ukM && parseFloat(ukM[1]) >= 3 && parseFloat(ukM[1]) <= 14) {
+    const idxCode = upperLines.findIndex(l => /\b(690|700)\b/.test(l));
+    if (idxCode > 0) {
+      const lineAbove = upperLines[idxCode - 1];
+      const ukM = lineAbove.match(/^(\d{1,2}(?:\s*1\/2|[½]|\.5)?)$/);
+      if (ukM && parseFloat(ukM[1]) >= 1 && parseFloat(ukM[1]) <= 14) {
         result.uk = normalizeSizeToken(ukM[1], false);
       }
     }
   }
 
   if (!result.cm) {
-    const mmM = [...matrixSource.matchAll(/\b(2[1-9][05]|30[05])\b/g)].map(m => parseInt(m[1], 10));
+    const mmM = [...matrixSource.matchAll(/\b(1[89][05]|2[0-9][05]|30[05])\b/g)].map(m => parseInt(m[1], 10));
     if (mmM.length > 0) {
       const mmVal = mmM[mmM.length - 1];
       result.cm = `${(mmVal / 10).toFixed(1).replace(/\.0$/, '')} CM (${mmVal} MM)`;
     }
   }
 
-  // No SKU-specific size defaults: missing sizes stay blank until the label actually supports them.
   result.confidence = [result.sku, result.brand, result.model, result.eur, result.ean, result.cm].filter(Boolean).length;
   return result;
 }
@@ -1883,6 +1986,26 @@ async function preprocessTagImage(sourceDataUrl, rotationDeg = 0, isolateCard = 
   };
 }
 
+let ocrWorkerInstance = null;
+async function getOcrWorker() {
+  if (ocrWorkerInstance) return ocrWorkerInstance;
+  if (window.Tesseract && Tesseract.createWorker) {
+    ocrWorkerInstance = await Tesseract.createWorker('eng');
+    return ocrWorkerInstance;
+  }
+  return null;
+}
+
+async function recognizeImgText(imgUrl) {
+  const worker = await getOcrWorker();
+  if (worker) {
+    const res = await worker.recognize(imgUrl);
+    return res?.data?.text || '';
+  }
+  const res = await Tesseract.recognize(imgUrl, 'eng');
+  return res?.data?.text || '';
+}
+
 async function runTagOcrPipeline() {
   try {
     $('ocrStatus').textContent = 'Detectando esquinas, recortando y aplicando zoom…';
@@ -1893,7 +2016,7 @@ async function runTagOcrPipeline() {
 
     $('cornerBadge').classList.toggle('hidden', !processed.detectedCorners);
     if (!processed.detectedCorners) {
-      $('ocrStatus').textContent = 'No detecté las cuatro esquinas con seguridad; usaré la foto completa y una lectura alternativa…';
+      $('ocrStatus').textContent = 'Usando foto completa y lectura optimizada…';
     }
 
     $('tagDrop').innerHTML = `
@@ -1911,32 +2034,35 @@ async function runTagOcrPipeline() {
 
     $('ocrStatus').textContent = 'Leyendo cabecera (Marca y Modelo)…';
     $('ocrProgressBar').style.width = '35%';
-    const headerRes = await Tesseract.recognize(processed.headerZoneUrl, 'eng');
+    const headerText = await recognizeImgText(processed.headerZoneUrl);
 
     $('ocrStatus').textContent = 'Leyendo columna derecha (Código SKU y Género)…';
     $('ocrProgressBar').style.width = '60%';
-    const rightColRes = await Tesseract.recognize(processed.rightColZoneUrl, 'eng');
+    const rightColText = await recognizeImgText(processed.rightColZoneUrl);
 
     $('ocrStatus').textContent = 'Leyendo matriz inferior de tallas (EUR / US / UK / MM)…';
     $('ocrProgressBar').style.width = '82%';
-    const matrixRes = await Tesseract.recognize(processed.matrixZoneUrl, 'eng');
+    const matrixText = await recognizeImgText(processed.matrixZoneUrl);
 
-    $('ocrStatus').textContent = 'Verificando lectura con la foto original…';
-    $('ocrProgressBar').style.width = '91%';
-    const fullRes = await Tesseract.recognize(processed.ocrDataUrl, 'eng');
-    const fallbackRes = await Tesseract.recognize(processed.fallbackOcrDataUrl, 'eng');
+    $('ocrStatus').textContent = 'Verificando lectura global…';
+    $('ocrProgressBar').style.width = '92%';
+    const fullText = await recognizeImgText(processed.ocrDataUrl);
+
+    const zonalData = { headerText, rightColText, matrixText };
+    let parsed = parseSneakerLabel(fullText, zonalData);
+
+    let fallbackText = '';
+    if (!parsed.sku || !parsed.model || !parsed.eur) {
+      $('ocrStatus').textContent = 'Refinando con foto original…';
+      fallbackText = await recognizeImgText(processed.fallbackOcrDataUrl);
+      parsed = parseSneakerLabel([fullText, fallbackText].join('\n'), zonalData);
+    }
+
     $('ocrProgressBar').style.width = '100%';
-
     const beam = $('activeScanBeam');
     if (beam) beam.remove();
     $('ocrProgressWrap').classList.add('hidden');
     $('ocrPercent').textContent = '';
-
-    const zonalData = {
-      headerText: headerRes?.data?.text || '',
-      rightColText: rightColRes?.data?.text || '',
-      matrixText: matrixRes?.data?.text || ''
-    };
 
     lastRawOcrText = [
       '=== CABECERA (MARCA / MODELO) ===',
@@ -1946,17 +2072,11 @@ async function runTagOcrPipeline() {
       '=== MATRIZ DE TALLAS ===',
       zonalData.matrixText.trim(),
       '=== LECTURA COMPLETA (ETIQUETA RECTIFICADA) ===',
-      (fullRes?.data?.text || '').trim(),
-      '=== VERIFICACIÓN FOTO ORIGINAL ===',
-      (fallbackRes?.data?.text || '').trim()
-    ].join('\n');
+      fullText.trim(),
+      fallbackText ? '=== VERIFICACIÓN FOTO ORIGINAL ===\n' + fallbackText.trim() : ''
+    ].filter(Boolean).join('\n');
 
     $('rawOcrTextarea').value = lastRawOcrText;
-
-    // Combina ambas lecturas. El parser puede encontrar SKU/tallas aunque una versión
-    // pierda algún carácter al enderezar o aumentar el contraste.
-    const combinedText = [fullRes?.data?.text || '', fallbackRes?.data?.text || ''].join('\n');
-    const parsed = parseSneakerLabel(combinedText, zonalData);
     applyParsedLabelToForm(parsed);
   } catch (err) {
     console.error('OCR Error:', err);
@@ -2303,7 +2423,9 @@ async function compressImage(file, maxDim = 1200, quality = 0.82) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', quality);
+  const resultUrl = canvas.toDataURL('image/jpeg', quality);
+  canvas.width = 0; canvas.height = 0;
+  return resultUrl;
 }
 
 async function handleGalleryFiles(e) {
@@ -2322,18 +2444,226 @@ async function handleGalleryFiles(e) {
   toast('Fotos añadidas a la galería del producto');
 }
 
+// Corrige errores ópticos comunes en SKUs de 6 caracteres (ej. 306925 -> JQ6925, J13470 -> JI3470, J10278 -> JI0278)
+function repairOcrSkuTypos(s) {
+  if (!s || s.length !== 6) return s;
+  let p1 = s[0], p2 = s[1], rest = s.slice(2);
+  // Si los últimos 4 son dígitos o letras confundidas con dígitos
+  if (/^[0-9OISB]{4}$/.test(rest)) {
+    // 306925 -> JQ6925 (el 3 inicial y 0 segundo en etiquetas Adidas JQxxxx)
+    if (p1 === '3' && (p2 === '0' || p2 === 'Q' || p2 === 'O')) { p1 = 'J'; p2 = 'Q'; }
+    if (p1 === 'D' && p2 === 'Y') p1 = 'O'; // DY5782 -> OY5782
+    if (p1 === 'J' && p2 === '1') p2 = 'I';
+    if (p1 === 'J' && p2 === '0') p2 = 'Q';
+    if (p1 === 'K' && p2 === '2') p2 = 'Z';
+    if (p1 === '1' && /[A-Z]/.test(p2)) p1 = 'I';
+    if (/^[A-Z]$/.test(p1) && /^[A-Z]$/.test(p2)) {
+      const fixedDigits = rest.replace(/O/g, '0').replace(/[IL]/g, '1').replace(/Z/g, '2').replace(/S/g, '5').replace(/B/g, '8');
+      if (/^\d{4}$/.test(fixedDigits)) return p1 + p2 + fixedDigits;
+    }
+  }
+  return s;
+}
+
+function canonicalizeSku(rawSku, rawId = '') {
+  let s = String(rawSku || '').trim().toUpperCase().replace(/[^A-Z0-9._-]/g, '');
+  let idStr = String(rawId || '').trim().toUpperCase().replace(/[^A-Z0-9._-]/g, '');
+  if (!s && idStr) {
+    s = idStr.replace(/^KS-+/i, '');
+  }
+  if (!s) return '';
+  const numMatch = s.match(/^(?:KS-?)?0*(\d{1,5})$/i);
+  if (numMatch) {
+    const num = parseInt(numMatch[1], 10);
+    if (num > 0 && num < 10000) {
+      return 'KS-' + String(num).padStart(4, '0');
+    }
+  }
+  s = repairOcrSkuTypos(s);
+  return s.slice(0, 40);
+}
+
+// Detecta y corrige incoherencias entre Marca y Modelo (ej. Modelo "NIKE PHANTOM..." con marca "Adidas")
+function inferCoherentBrand(rawBrand, rawModel) {
+  const m = String(rawModel || '').toUpperCase();
+  const b = String(rawBrand || 'Adidas').trim();
+  if (/\b(NIKE|PHANTOM|MERCURIAL|TIEMPO|AIR MAX|DUNK|VAPOR)\b/.test(m)) return 'Nike';
+  if (/\b(JORDAN|JUMPMAN)\b/.test(m)) return 'Jordan';
+  if (/\b(PUMA|ATTACANTO|FUTURE PLAY|ULTRA PLAY)\b/.test(m)) return 'Puma';
+  if (/\b(NEW BALANCE|FRESH FOAM)\b/.test(m)) return 'New Balance';
+  if (/\b(ASICS|GEL-)\b/.test(m)) return 'Asics';
+  if (/\b(REEBOK|NANO|CLUB C)\b/.test(m)) return 'Reebok';
+  if (/\b(ADIDAS|ADIZERO|PREDATOR|ULTRARUN|ULTRA RUN|RESPONSE|RUNFALCON|GOLETTO|TENSAUR|QUESTAR|CAMPUS|HOOPS|FORUM|TERREX|F50|COPA)\b/.test(m)) return 'Adidas';
+  return b || 'Adidas';
+}
+
+function cleanModelNameTypos(rawModel) {
+  return String(rawModel || '')
+    .trim()
+    .toUpperCase()
+    .replace(/\bCAMPUS\s+OOS\b/g, 'CAMPUS 00S')
+    .replace(/\s+/g, ' ')
+    .slice(0, 100);
+}
+
+function parseMonetaryPrice(rawPrice) {
+  if (typeof rawPrice === 'number') return Number.isFinite(rawPrice) && rawPrice >= 0 ? rawPrice : 0;
+  let s = String(rawPrice ?? '').replace(/[^0-9.,-]/g, '').trim();
+  if (!s) return 0;
+  // Si tiene coma como separador decimal (ej. "280,00" o "1.250,50")
+  if (/,\d{1,2}$/.test(s)) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else {
+    s = s.replace(/,/g, '');
+  }
+  const n = Number(s);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+function getNextInternalSku() {
+  let maxNum = 0;
+  catalog.forEach(p => {
+    const m = String(p.sku || '').match(/^KS-0*(\d+)$/i) || String(p.id || '').match(/^ks-(?:KS-)?0*(\d+)$/i);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n > maxNum && n < 10000) maxNum = n;
+    }
+  });
+  return 'KS-' + String(maxNum + 1).padStart(4, '0');
+}
+
+function assignAutoInternalSku() {
+  const currentVal = $('sku').value.trim();
+  const canon = canonicalizeSku(currentVal);
+  if (canon && /^KS-\d{4}$/.test(canon) && canon !== currentVal) {
+    $('sku').value = canon;
+    updateFormPreview();
+    toast(`Código normalizado a ${canon}`);
+    return;
+  }
+  const nextSku = getNextInternalSku();
+  $('sku').value = nextSku;
+  updateFormPreview();
+  toast(`Código correlativo asignado: ${nextSku}`);
+}
+
+function getModelFingerprint(brand, model) {
+  const cleanModel = cleanModelNameTypos(model);
+  const coherentBrand = inferCoherentBrand(brand, cleanModel);
+  const b = String(coherentBrand || '').trim().toUpperCase().replace(/\s+/g, ' ');
+  const m = cleanModel.replace(/[^A-Z0-9]+/g, ' ').trim();
+  return m ? `${b}::${m}` : '';
+}
+
+function isCorrelativeSku(sku) {
+  return /^KS-\d{4}$/i.test(String(sku || '').trim());
+}
+
+function mergeTwoProducts(target, source, sumQuantities = false) {
+  if (isCorrelativeSku(target.sku) && !isCorrelativeSku(source.sku) && source.sku) {
+    target.sku = source.sku;
+    target.id = 'ks-' + source.sku;
+  }
+  const mergedStock = { ...(target.sizeStock || {}) };
+  (target.sizes || []).forEach(s => { if (!(s in mergedStock)) mergedStock[s] = 1; });
+  const srcStock = source.sizeStock || {};
+  (source.sizes || []).forEach(s => {
+    const normS = normalizeSizeToken(s, true) || s;
+    const qty = Math.max(1, Math.floor(Number(srcStock[s]) || 1));
+    mergedStock[normS] = sumQuantities
+      ? (mergedStock[normS] || 0) + qty
+      : Math.max(mergedStock[normS] || 0, qty);
+  });
+  target.sizeStock = mergedStock;
+  target.sizes = Object.keys(mergedStock).sort((a, b) => parseFloat(a) - parseFloat(b));
+  target.images = [...new Set([...(target.images || []), ...(source.images || [])].filter(Boolean))];
+  target.image = target.images[0] || target.image || source.image || '';
+  if (!target.category && source.category) target.category = source.category;
+  if (!target.equivalence && source.equivalence) target.equivalence = source.equivalence;
+  if (!target.ean && source.ean) target.ean = source.ean;
+  if ((!target.price || target.price <= 0) && source.price > 0) target.price = source.price;
+  target.brand = inferCoherentBrand(target.brand, target.model);
+  target.updatedAt = Math.max(target.updatedAt || 0, source.updatedAt || 0);
+  return target;
+}
+
+function consolidateCatalogList(itemsList) {
+  const bySku = new Map();
+  const byModelFp = new Map();
+
+  itemsList.forEach(raw => {
+    const p = normalize(raw);
+    if (!p || deletedSkus[p.sku]) return;
+
+    const fp = getModelFingerprint(p.brand, p.model);
+    let existing = bySku.get(p.sku);
+
+    if (!existing && fp && byModelFp.has(fp)) {
+      const candidate = byModelFp.get(fp);
+      if (isCorrelativeSku(p.sku) || isCorrelativeSku(candidate.sku) || p.sku === candidate.sku) {
+        existing = candidate;
+      }
+    }
+
+    if (existing) {
+      const oldSku = existing.sku;
+      mergeTwoProducts(existing, p, false);
+      if (existing.sku !== oldSku) {
+        bySku.delete(oldSku);
+        bySku.set(existing.sku, existing);
+      }
+    } else {
+      bySku.set(p.sku, p);
+      if (fp) byModelFp.set(fp, p);
+    }
+  });
+
+  return [...bySku.values()];
+}
+
+async function deduplicateAndNormalizeCatalog(interactive = true) {
+  const beforeCount = catalog.length;
+  const cleaned = consolidateCatalogList(catalog);
+
+  cleaned.forEach(p => {
+    p.sku = canonicalizeSku(p.sku, p.id) || getNextInternalSku();
+    p.id = 'ks-' + p.sku;
+    p.model = cleanModelNameTypos(p.model);
+    p.brand = inferCoherentBrand(p.brand, p.model);
+  });
+
+  const finalCatalog = consolidateCatalogList(cleaned);
+  const removedCount = beforeCount - finalCatalog.length;
+
+  catalog = finalCatalog;
+  markPendingSync(true);
+  persist();
+  renderCatalog();
+
+  if (interactive) {
+    toast(removedCount > 0
+      ? `✓ Se unificaron ${removedCount} ${removedCount === 1 ? 'par repetido' : 'pares repetidos'} y se estandarizaron los códigos.`
+      : `✓ Catálogo verificado y códigos normalizados (${catalog.length} modelos únicos).`
+    );
+  }
+
+  if (DEFAULT_GAS_URL) {
+    await pushCatalogToSheets(false);
+  }
+}
+
 function normalize(item) {
   if (!item || typeof item !== 'object') return null;
-  const sku = String(item.sku || '').trim().toUpperCase().replace(/[^A-Z0-9._-]/g, '').slice(0, 40);
+  const sku = canonicalizeSku(item.sku, item.id);
   if (!sku) return null;
 
   const sizeStock = {};
   if (item.sizeStock && typeof item.sizeStock === 'object') {
     Object.entries(item.sizeStock).forEach(([k, v]) => {
-      const s = String(k || '').trim();
+      const s = normalizeSizeToken(String(k || '').trim(), true) || String(k || '').trim();
       const q = Math.max(0, Math.floor(Number(v) || 0));
       if (s && /^[A-Za-z0-9 .\/-]{1,16}$/.test(s) && q > 0) {
-        sizeStock[s] = q;
+        sizeStock[s] = (sizeStock[s] || 0) + q;
       }
     });
   }
@@ -2343,7 +2673,7 @@ function normalize(item) {
     const rawStr = String(entry || '').trim();
     if (!rawStr) return;
     const parts = rawStr.split(':');
-    const s = String(parts[0] || '').trim();
+    const s = normalizeSizeToken(String(parts[0] || '').trim(), true) || String(parts[0] || '').trim();
     if (!s || !/^[A-Za-z0-9 .\/-]{1,16}$/.test(s)) return;
     if (!(s in sizeStock)) {
       const q = parts.length > 1 ? Math.max(1, Math.floor(Number(parts[1]) || 1)) : 1;
@@ -2357,14 +2687,16 @@ function normalize(item) {
   const images = [...new Set([primarySource, ...sourceImages]
     .map(x => extractCleanImageUrl(String(x || '').trim()))
     .filter(Boolean))];
-  const rawPrice = typeof item.price === 'string' ? Number(item.price.replace(/[^0-9.-]/g, '')) : Number(item.price);
-  const price = Number.isFinite(rawPrice) && rawPrice >= 0 ? rawPrice : 0;
+  const price = parseMonetaryPrice(item.price);
+  const cleanModel = cleanModelNameTypos(item.model);
+  const coherentBrand = inferCoherentBrand(item.brand, cleanModel);
+
   return {
-    id: String(item.id || ('ks-' + sku)).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 100) || ('ks-' + sku),
+    id: 'ks-' + sku,
     sku,
-    brand: String(item.brand || 'Adidas').slice(0, 50),
-    model: String(item.model || '').slice(0, 100),
-    category: String(item.category || '').slice(0, 90),
+    brand: coherentBrand.slice(0, 50),
+    model: cleanModel,
+    category: String(item.category || '').trim().toUpperCase().slice(0, 90),
     price,
     sizes,
     sizeStock,
@@ -2376,7 +2708,24 @@ function normalize(item) {
   };
 }
 
+function setHeroProduct(sku, ev) {
+  if (ev) ev.stopPropagation();
+  const clean = String(sku || '').trim().toUpperCase();
+  if (!clean) return;
+  featuredHeroSku = (featuredHeroSku === clean) ? '' : clean;
+  try { localStorage.setItem(HERO_SKU_KEY, featuredHeroSku); } catch (_) {}
+  renderCatalog();
+  if ($('detailOverlay').classList.contains('open')) renderDetail();
+  toast(featuredHeroSku
+    ? `★ ${clean} fijado como Portada Principal del Catálogo PDF`
+    : 'Portada PDF automática (se usará el par más relevante)'
+  );
+}
+
 function readStorage() {
+  try {
+    featuredHeroSku = String(localStorage.getItem(HERO_SKU_KEY) || '').trim().toUpperCase();
+  } catch (_) { featuredHeroSku = ''; }
   try {
     const rawDeleted = JSON.parse(localStorage.getItem(DELETED_SKUS_KEY) || '{}');
     deletedSkus = (rawDeleted && typeof rawDeleted === 'object') ? rawDeleted : {};
@@ -2389,7 +2738,8 @@ function readStorage() {
   } catch (_) {}
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    catalog = Array.isArray(raw) ? raw.map(normalize).filter(Boolean) : [];
+    const normalizedList = Array.isArray(raw) ? raw.map(normalize).filter(Boolean) : [];
+    catalog = consolidateCatalogList(normalizedList);
   } catch (e) {
     catalog = [];
     toast('Error al leer almacenamiento local.');
@@ -2467,21 +2817,25 @@ function renderCatalog() {
       const qStock = getSizeQty(p, s);
       return qStock > 1 ? `${s} (${qStock})` : s;
     }).join(' · ');
+    const isHero = featuredHeroSku && featuredHeroSku === p.sku;
     return `
-    <article class="product-card" onclick="openDetail('${esc(p.id)}')">
+    <article class="product-card ${isHero ? 'ring-2 ring-[#121211]' : ''}" onclick="openDetail('${esc(p.id)}')">
       <div class="product-photo">
         ${imgHtml(p.image, p.model)}
         <span class="absolute top-3 left-3 bg-white/95 backdrop-blur px-2.5 py-1 rounded-lg font-mono-code font-bold text-[10px] shadow-sm border border-black/5">${esc(p.sku)}</span>
+        <button type="button" onclick="setHeroProduct('${esc(p.sku)}', event)" title="${isHero ? 'Portada actual del PDF (Toca para cambiar)' : 'Elegir como zapatilla de portada en el PDF'}" class="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-lg font-mono-code text-[10px] font-bold transition ${isHero ? 'bg-[#d8ff3e] text-[#121211] border border-black/20 shadow-sm' : 'bg-white/85 text-[#6e6d66] hover:text-black border border-black/5'}">
+          ${isHero ? '★ PORTADA PDF' : '☆ Portada'}
+        </button>
         <span class="absolute bottom-2.5 right-2.5 bg-[#121211]/90 text-[#d8ff3e] px-2 py-0.5 rounded-lg font-mono-code text-[10px] font-bold">${totalUnits} ${totalUnits === 1 ? 'PAR' : 'PARES'}</span>
         ${p.images.length > 1 ? `<span class="absolute top-3 right-3 bg-[#121211]/80 text-white px-2 py-0.5 rounded-lg text-[10px] font-extrabold">▧ ${p.images.length}</span>` : ''}
       </div>
-      <div class="p-4 flex-1 flex flex-col justify-between">
+      <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between">
         <div>
-          <div class="text-[10px] font-extrabold tracking-widest uppercase text-[#6e6d66] truncate">${esc(p.brand)}${p.category ? ' · ' + esc(p.category) : ''}</div>
-          <h3 class="font-display font-bold text-base sm:text-lg leading-tight uppercase mt-1 mb-2 line-clamp-2">${esc(p.model || 'Modelo sin título')}</h3>
+          <div class="text-[9.5px] sm:text-[10px] font-extrabold tracking-widest uppercase text-[#6e6d66] truncate">${esc(p.brand)}${p.category ? ' · ' + esc(p.category) : ''}</div>
+          <h3 class="font-display font-bold text-sm sm:text-lg leading-tight uppercase mt-1 mb-2 line-clamp-2">${esc(p.model || 'Modelo sin título')}</h3>
         </div>
-        <div class="pt-3 border-t border-black/10 flex items-end justify-between gap-2">
-          <div class="font-display font-bold text-lg sm:text-xl leading-none">
+        <div class="pt-2.5 sm:pt-3 border-t border-black/10 flex items-end justify-between gap-1.5">
+          <div class="font-display font-bold text-base sm:text-xl leading-none">
             <small class="text-[10px] font-sans font-bold text-[#6e6d66]">S/</small> ${p.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div class="font-mono-code text-[10px] font-bold text-[#6e6d66] text-right">
@@ -2657,9 +3011,17 @@ async function addCustomSizeChip() {
 }
 
 function updateFormPreview() {
+  const rawModel = $('model').value.trim().toUpperCase();
+  if (rawModel) {
+    const inferred = inferCoherentBrand($('brand').value, rawModel);
+    if (inferred && inferred !== $('brand').value) {
+      const opt = [...$('brand').options].find(o => o.value === inferred);
+      if (opt) $('brand').value = inferred;
+    }
+  }
   const brand = $('brand').value || 'KICKS';
   const sku = $('sku').value.trim().toUpperCase() || 'SKU';
-  const model = $('model').value.trim().toUpperCase() || 'MODELO';
+  const model = rawModel || 'MODELO';
   const ean = $('eanCode').value.trim();
 
   $('formPreview').src = extractCleanImageUrl(gallery[0]) || placeholder(brand, sku);
@@ -2667,7 +3029,7 @@ function updateFormPreview() {
   $('formPreviewModel').textContent = model;
   $('formPreviewSku').textContent = sku;
 
-  const autoQ = [brand, $('model').value.trim().toUpperCase(), $('sku').value.trim().toUpperCase()].filter(Boolean).join(' ').trim();
+  const autoQ = [brand, rawModel, $('sku').value.trim().toUpperCase()].filter(Boolean).join(' ').trim();
   if (autoQ) $('imageQuery').value = autoQ;
 
   if (ean) {
@@ -2752,11 +3114,16 @@ function fillForm(p) {
 
 async function saveProduct(e) {
   e.preventDefault();
-  const sku = $('sku').value.trim().toUpperCase().replace(/\s+/g, '');
-  const brand = $('brand').value;
-  const model = $('model').value.trim().toUpperCase();
+  let rawSku = $('sku').value.trim();
+  if (!rawSku) {
+    rawSku = getNextInternalSku();
+    $('sku').value = rawSku;
+  }
+  const sku = canonicalizeSku(rawSku);
+  const model = cleanModelNameTypos($('model').value);
+  const brand = inferCoherentBrand($('brand').value, model);
   const category = $('category').value.trim().toUpperCase();
-  const price = Number($('price').value);
+  const price = parseMonetaryPrice($('price').value);
   const ean = $('eanCode').value.trim();
 
   if (!sku || !model || !Number.isFinite(price) || price < 0) {
@@ -2777,13 +3144,14 @@ async function saveProduct(e) {
 
   const cleanSizeStock = {};
   selectedSizes.forEach(s => {
-    cleanSizeStock[s] = Math.max(1, Math.floor(Number(selectedSizeStock[s]) || 1));
+    const normS = normalizeSizeToken(s, true) || s;
+    cleanSizeStock[normS] = Math.max(1, Math.floor(Number(selectedSizeStock[s]) || 1));
   });
   const sortedSizes = Object.keys(cleanSizeStock).sort((a, b) => parseFloat(a) - parseFloat(b));
 
   const images = [...new Set(gallery.map(x => extractCleanImageUrl(String(x || '').trim())).filter(Boolean))];
   const item = {
-    id: editingId || ('ks-' + sku),
+    id: 'ks-' + sku,
     sku,
     brand,
     model,
@@ -2799,28 +3167,25 @@ async function saveProduct(e) {
   };
 
   const oldIdx = catalog.findIndex(x => x.id === editingId);
-  const dupIdx = catalog.findIndex(x => x.sku === sku && x.id !== editingId);
+  const fp = getModelFingerprint(brand, model);
+  const dupIdx = catalog.findIndex((x, idx) =>
+    idx !== oldIdx && (
+      x.sku === sku ||
+      (fp && getModelFingerprint(x.brand, x.model) === fp && (isCorrelativeSku(x.sku) || isCorrelativeSku(sku)))
+    )
+  );
 
   if (dupIdx >= 0) {
     const existing = catalog[dupIdx];
     const ok = await showDialog({
-      eyebrow: 'SKU EXISTENTE EN CATÁLOGO',
-      title: `El SKU ${sku} ya está registrado`,
-      message: 'Si estás escaneando otro par del mismo modelo, se sumarán las cantidades de stock a las tallas existentes y se conservarán las fotos.',
+      eyebrow: 'MODELO / SKU EXISTENTE EN CATÁLOGO',
+      title: `${existing.model} (${existing.sku}) ya está registrado`,
+      message: 'Si estás escaneando otro par del mismo modelo, se sumarán las cantidades de stock a las tallas existentes y se conservarán las fotos en una sola tarjeta.',
       confirmText: 'Sumar al stock existente'
     });
     if (!ok) return;
-    const mergedStock = { ...(existing.sizeStock || {}) };
-    existing.sizes.forEach(s => { if (!(s in mergedStock)) mergedStock[s] = 1; });
-    sortedSizes.forEach(s => {
-      mergedStock[s] = (mergedStock[s] || 0) + (cleanSizeStock[s] || 1);
-    });
-    item.id = existing.id;
-    item.sizeStock = mergedStock;
-    item.sizes = Object.keys(mergedStock).sort((a, b) => parseFloat(a) - parseFloat(b));
-    item.images = [...new Set([...images, ...(existing.images || [])])];
-    item.image = item.images[0] || existing.image || '';
-    catalog[dupIdx] = item;
+    mergeTwoProducts(existing, item, true);
+    catalog[dupIdx] = existing;
     if (oldIdx >= 0 && oldIdx !== dupIdx) catalog.splice(oldIdx, 1);
   } else if (oldIdx >= 0) {
     catalog[oldIdx] = item;
@@ -2832,12 +3197,13 @@ async function saveProduct(e) {
     delete deletedSkus[sku];
   }
 
+  catalog = consolidateCatalogList(catalog);
   markPendingSync(true);
   persist();
   renderCatalog();
   switchView('catalog');
   toast(`Par ${sku} guardado (${getProductTotalStock(item)} ${getProductTotalStock(item) === 1 ? 'par' : 'pares'} en stock)`);
-  
+
   const gasUrl = DEFAULT_GAS_URL;
   if (gasUrl) {
     const synced = await pushCatalogToSheets(false);
@@ -2920,6 +3286,9 @@ function renderDetail() {
 
         <div class="flex flex-wrap gap-2 mt-6 pt-4 border-t border-black/10">
           <button type="button" class="btn btn-acid flex-1" onclick="orderOnWhatsApp()">🖼 Ficha Visual WhatsApp ↗</button>
+          <button type="button" class="btn ${featuredHeroSku === p.sku ? 'btn-blue' : 'btn-light'}" onclick="setHeroProduct('${esc(p.sku)}')">
+            ${featuredHeroSku === p.sku ? '★ Portada PDF Activa' : '☆ Elegir Portada PDF'}
+          </button>
           <button type="button" class="btn btn-dark" onclick="editSelected()">Editar</button>
           <button type="button" class="btn btn-danger" onclick="deleteSelected()">Eliminar</button>
         </div>
@@ -3062,6 +3431,73 @@ async function deleteSelected() {
     toast(`Eliminado localmente; no se pudo confirmar el borrado de ${skuUpper} en Sheets. Revisa Apps Script v7 y vuelve a sincronizar.`);
   }
 }
+function parseEquivalenceSpecs(equivStr, eanStr) {
+  const s = String(equivStr || '');
+  const usM = s.match(/US\s+([^·]+)/i);
+  const ukM = s.match(/UK\s+([^·]+)/i);
+  const cmM = s.match(/(\d+(?:\.\d+)?\s*CM[^·]*|\d{3}\s*MM)/i);
+  const eanM = s.match(/EAN\s+(\d+)/i);
+  return {
+    us: usM ? usM[1].trim() : '',
+    uk: ukM ? ukM[1].trim() : '',
+    cm: cmM ? cmM[1].trim() : '',
+    ean: eanStr || (eanM ? eanM[1].trim() : '')
+  };
+}
+
+function formatSkuBadgeLabel(sku) {
+  return isCorrelativeSku(sku) ? `ITEM #${sku.replace(/^KS-/i, '')}` : `ART. ${sku}`;
+}
+
+function renderSpecStripHtml(sp, p) {
+  const leftParts = [];
+  if (sp.us) leftParts.push(`<span style="color:#d8ff3e !important;">US</span> ${esc(sp.us)}`);
+  if (sp.uk) leftParts.push(`<span style="color:#d8ff3e !important;">UK</span> ${esc(sp.uk)}`);
+  if (sp.cm) leftParts.push(`<span style="color:#d8ff3e !important;">MED</span> ${esc(sp.cm.replace(/\s*\([^)]*\)/, ''))}`);
+  if (!leftParts.length) {
+    const catLabel = p.category ? p.category : 'ORIGINAL ARCHIVE';
+    leftParts.push(`<span style="color:#d8ff3e !important;">DIV</span> ${esc(catLabel)}`);
+  }
+  const rightPart = sp.ean ? `EAN ${esc(sp.ean)}` : '100% ORIGINAL';
+  return `
+    <div class="print-spec-strip">
+      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${leftParts.join(' · ')}</div>
+      <div style="color:#d0d0c8 !important;font-size:7px;white-space:nowrap;margin-left:4px;">${rightPart}</div>
+    </div>
+  `;
+}
+
+function renderOrderGuideCardHtml(whatsappRaw, dateStr) {
+  return `
+    <article class="print-card" style="background-color:#121211 !important;color:#ffffff !important;border:1.8px solid #121211;justify-content:space-between;padding:4mm 4.5mm;">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid #333;padding-bottom:2mm;margin-bottom:2.5mm;">
+          <span style="font:800 9px 'JetBrains Mono',monospace;color:#d8ff3e !important;letter-spacing:0.14em;">OFFICIAL ORDER GUIDE</span>
+          <span style="font:700 8px 'JetBrains Mono',monospace;color:#ffffff !important;">KICKS STUDIO PERÚ</span>
+        </div>
+        <h3 style="font:700 18px/1.02 'Space Grotesk',sans-serif;color:#ffffff !important;text-transform:uppercase;margin:0 0 2.5mm;">
+          RESERVA DIRECTA <span style="color:#d8ff3e !important;">VÍA WHATSAPP</span>
+        </h3>
+        <div style="font:600 8.5px/1.35 'DM Sans',sans-serif;color:#f4f3ee !important;display:grid;gap:2mm;">
+          <div style="background:#1e1e1c !important;padding:2mm 2.8mm;border-radius:2mm;border-left:2.5px solid #d8ff3e;">
+            <strong style="color:#d8ff3e !important;font-family:'JetBrains Mono',monospace;">01. CÓDIGO SKU:</strong> Indica el código <b>ART. / ITEM</b> y tu talla europea (EUR).
+          </div>
+          <div style="background:#1e1e1c !important;padding:2mm 2.8mm;border-radius:2mm;border-left:2.5px solid #d8ff3e;">
+            <strong style="color:#d8ff3e !important;font-family:'JetBrains Mono',monospace;">02. ATENCIÓN INMEDIATA:</strong> Escríbenos al WhatsApp ${whatsappRaw ? '(+' + esc(whatsappRaw) + ')' : 'oficial'} o envía captura.
+          </div>
+          <div style="background:#1e1e1c !important;padding:2mm 2.8mm;border-radius:2mm;border-left:2.5px solid #d8ff3e;">
+            <strong style="color:#d8ff3e !important;font-family:'JetBrains Mono',monospace;">03. PAGO & ENVÍO:</strong> Aceptamos <b>Yape, Plin y Transferencia</b>. Envíos a todo el Perú.
+          </div>
+        </div>
+      </div>
+      <div style="border-top:1.5px solid #333;padding-top:2mm;display:flex;justify-content:space-between;align-items:center;font:800 8px 'JetBrains Mono',monospace;color:#d8ff3e !important;">
+        <span>100% CALZADO ORIGINAL</span>
+        <span>${esc(dateStr)}</span>
+      </div>
+    </article>
+  `;
+}
+
 function renderPrintLookbook() {
   const container = $('printLookbook');
   if (!container) return false;
@@ -3088,6 +3524,21 @@ function renderPrintLookbook() {
     return (b.updatedAt || 0) - (a.updatedAt || 0);
   });
 
+  if (featuredHeroSku) {
+    const heroIdx = list.findIndex(p => p.sku === featuredHeroSku);
+    if (heroIdx > 0) {
+      const [pickedHero] = list.splice(heroIdx, 1);
+      list.unshift(pickedHero);
+    }
+  } else {
+    const bestIdx = list.reduce((bestI, curr, idx, arr) =>
+      getProductTotalStock(curr) > getProductTotalStock(arr[bestI]) ? idx : bestI, 0);
+    if (bestIdx > 0 && sortMode === 'recent') {
+      const [autoHero] = list.splice(bestIdx, 1);
+      list.unshift(autoHero);
+    }
+  }
+
   const dateStr = new Date().toLocaleDateString('es-PE', {
     day: '2-digit',
     month: 'short',
@@ -3097,126 +3548,175 @@ function renderPrintLookbook() {
   const whatsappRaw = (localStorage.getItem('kicks_pe_whatsapp') || '').trim();
   const totalUnitsAll = list.reduce((acc, p) => acc + getProductTotalStock(p), 0);
   const hero = list[0];
+  const heroSpecs = parseEquivalenceSpecs(hero.equivalence, hero.ean);
+  const heroTotalUnits = getProductTotalStock(hero);
 
-  const CARDS_PER_PAGE = 4;
+  // Maquetación Protagonista: 6 Pares por Página (2 Columnas x 3 Filas)
+  const CARDS_PER_PAGE = 6;
   const pages = [];
   for (let i = 0; i < list.length; i += CARDS_PER_PAGE) {
     pages.push(list.slice(i, i + CARDS_PER_PAGE));
   }
 
-  container.innerHTML = `
-    <section class="print-cover">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div>
-          <div class="print-cover-kicker">OFFICIAL SEASON DROP · ARCHIVE EDITION</div>
-          <div style="font:700 22px 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin-top:2mm;">KICKS STUDIO<span style="color:#d8ff3e;">.</span></div>
+  const renderCardItem = p => {
+    const totalUnits = getProductTotalStock(p);
+    const sp = parseEquivalenceSpecs(p.equivalence, p.ean);
+    const isScarcity = totalUnits === 1;
+    return `
+      <article class="print-card">
+        <div class="print-card-top">
+          <span style="font-size:9px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#d8ff3e !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:64%;">
+            ${esc(p.brand)}${p.category ? ' // ' + esc(p.category) : ''}
+          </span>
+          <span style="font:800 9px 'JetBrains Mono',monospace;background-color:#ffffff !important;color:#121211 !important;padding:1.2px 6px;border-radius:2px;">
+            ${esc(formatSkuBadgeLabel(p.sku))}
+          </span>
         </div>
-        <div style="background:#d8ff3e;color:#121211;padding:2.5mm 4mm;border-radius:2mm;font:800 10px 'JetBrains Mono',monospace;letter-spacing:0.12em;">
-          100% PARES ORIGINALES
+
+        <div class="print-card-photo">
+          ${imgHtml(p.image, p.model)}
+          <span style="position:absolute;bottom:4px;left:4px;z-index:2;background-color:${isScarcity ? '#e11d48' : '#121211'} !important;color:#ffffff !important;font:800 7.6px 'JetBrains Mono',monospace;padding:2px 6px;border-radius:2.5px;letter-spacing:0.05em;">
+            ${isScarcity ? '🔥 ÚLTIMO PAR · 1 OF 1' : `STOCK: ${totalUnits} PARES`}
+          </span>
+        </div>
+
+        <div class="print-card-body">
+          <h3 style="font:700 15.5px/1.05 'Space Grotesk',sans-serif;letter-spacing:-0.035em;text-transform:uppercase;margin:0;color:#121211 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            ${esc(p.model || 'MODELO SIN TÍTULO')}
+          </h3>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin:2px 0;">
+            <div class="print-sizes" style="flex:1;min-width:0;">
+              ${p.sizes.length
+                ? p.sizes.map(s => {
+                    const q = getSizeQty(p, s);
+                    return `<span class="${q === 1 ? 'print-size-pill-low' : 'print-size-pill'}">EUR ${esc(s)}${q > 1 ? ' · ' + q + 'p' : ''}</span>`;
+                  }).join('')
+                : `<span class="print-size-pill">AGOTADO</span>`
+              }
+            </div>
+            <div class="print-price-tag">
+              <small style="font-size:9.5px;font-weight:800;margin-right:1.5px;">S/</small>${p.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </div>
+
+          ${renderSpecStripHtml(sp, p)}
+        </div>
+      </article>
+    `;
+  };
+
+  const heroEquivLine = [
+    heroSpecs.us ? `US ${heroSpecs.us}` : '',
+    heroSpecs.uk ? `UK ${heroSpecs.uk}` : '',
+    heroSpecs.cm ? heroSpecs.cm : ''
+  ].filter(Boolean).join(' · ') || 'TALLA EUROPEA VERIFICADA';
+
+  container.innerHTML = `
+    <section class="print-cover" style="background-color:#10100f !important;color:#ffffff !important;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1.5px solid #333330;padding-bottom:3.5mm;">
+        <div>
+          <div class="print-cover-kicker">OFFICIAL SEASON LOOKBOOK · PERÚ ARCHIVE EDITION</div>
+          <div style="font:700 24px 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin-top:1mm;color:#ffffff !important;">KICKS STUDIO<span style="color:#d8ff3e !important;">.</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="background-color:#d8ff3e !important;color:#121211 !important;padding:2mm 3.5mm;border-radius:1.8mm;font:800 9.5px 'JetBrains Mono',monospace;letter-spacing:0.1em;display:inline-block;">
+            100% AUTHENTIC SNEAKERS
+          </div>
+          <div style="font:700 8.5px 'JetBrains Mono',monospace;color:#c8c7c0 !important;margin-top:1.2mm;">EDICIÓN: ${esc(dateStr)}</div>
         </div>
       </div>
 
       <div>
-        <div class="print-cover-title">BUILT FOR<br>THE STREETS.<br><span style="color:#d8ff3e;">READY TO SHIP.</span></div>
-        <div class="print-cover-sub" style="margin-top:4mm;">
+        <div class="print-cover-title">ENGINEERED<br>FOR THE STREETS.<br><span style="color:#d8ff3e !important;">READY TO SHIP.</span></div>
+        <div class="print-cover-sub">
           Catálogo Oficial de Temporada · Stock verificado por talla europea · Reserva inmediata vía WhatsApp
         </div>
+
         <div class="print-cover-hero">
-          <div class="print-cover-badge">DESTACADO · ${esc(hero.brand)} ${esc(hero.sku)}</div>
-          ${imgHtml(hero.image, hero.model || 'Producto destacado')}
-          <div class="print-cover-price-pill">S/ ${hero.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div class="print-cover-hero-photo">
+            <div class="print-cover-badge">★ COVER DROP · ${esc(hero.brand)} ${esc(formatSkuBadgeLabel(hero.sku))}</div>
+            ${imgHtml(hero.image, hero.model || 'Producto destacado')}
+          </div>
+          <div class="print-cover-hero-specs">
+            <div>
+              <div style="font:800 9.5px 'JetBrains Mono',monospace;color:#d8ff3e !important;letter-spacing:0.14em;text-transform:uppercase;">
+                01 // SILUETA PROTAGONISTA
+              </div>
+              <div style="font:700 22px/1.02 'Space Grotesk',sans-serif;text-transform:uppercase;margin-top:2mm;color:#ffffff !important;">
+                ${esc(hero.model)}
+              </div>
+              <div style="font:700 9.5px 'JetBrains Mono',monospace;color:#c8c7c0 !important;margin-top:1.5mm;">
+                ${esc(hero.brand)} · ${esc(hero.category || 'PERFORMANCE EDITION')}
+              </div>
+
+              <div style="border-top:1px solid #333;margin-top:4mm;padding-top:3.5mm;">
+                <div style="font:800 8.5px 'JetBrains Mono',monospace;color:#d8ff3e !important;letter-spacing:0.1em;margin-bottom:2mm;">
+                  TALLAS EUR EN STOCK (${heroTotalUnits} ${heroTotalUnits === 1 ? 'PAR' : 'PARES'})
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                  ${hero.sizes.map(s => `<span style="background-color:#262624 !important;color:#ffffff !important;border:1.5px solid #d8ff3e;padding:2.5px 7px;border-radius:3px;font:700 9.5px 'Space Grotesk',sans-serif;">EUR ${esc(s)} (${getSizeQty(hero, s)})</span>`).join('')}
+                </div>
+              </div>
+
+              <div style="border-top:1px solid #333;margin-top:4mm;padding-top:3.5mm;font:700 9px/1.6 'JetBrains Mono',monospace;color:#d0d0c8 !important;">
+                <div>CÓDIGO: <strong style="color:#ffffff !important;">${esc(hero.sku)}</strong></div>
+                <div>MEDIDAS: <strong style="color:#ffffff !important;">${esc(heroEquivLine)}</strong></div>
+                ${heroSpecs.ean ? `<div>EAN-13: <strong style="color:#ffffff !important;">${esc(heroSpecs.ean)}</strong></div>` : ''}
+              </div>
+            </div>
+
+            <div style="background-color:#d8ff3e !important;color:#121211 !important;padding:3.5mm 4mm;border-radius:2.5mm;display:flex;justify-content:space-between;align-items:center;">
+              <span style="font:800 9px 'JetBrains Mono',monospace;letter-spacing:0.06em;">PRECIO OFICIAL</span>
+              <span style="font:700 24px 'Space Grotesk',sans-serif;line-height:1;">S/ ${hero.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="print-cover-meta">
-        <span>EDICIÓN ACTUALIZADA<br><strong style="color:#fff;">${esc(dateStr)}</strong></span>
-        <span>INVENTARIO DISPONIBLE<br><strong style="color:#d8ff3e;">${list.length} MODELOS · ${totalUnitsAll} PARES</strong></span>
-        <span style="text-align:right;">PEDIDOS DIRECTOS<br><strong style="color:#fff;">${whatsappRaw ? 'WHATSAPP +' + esc(whatsappRaw) : 'KICKS STUDIO PERÚ'}</strong></span>
+        <span>ACTUALIZACIÓN<br><strong style="color:#ffffff !important;">${esc(dateStr)}</strong></span>
+        <span>MODELOS ÚNICOS<br><strong style="color:#d8ff3e !important;">${list.length} SILUETAS</strong></span>
+        <span>STOCK TOTAL<br><strong style="color:#d8ff3e !important;">${totalUnitsAll} PARES</strong></span>
+        <span style="text-align:right;">RESERVAS WHATSAPP<br><strong style="color:#ffffff !important;">${whatsappRaw ? '+' + esc(whatsappRaw) : 'KICKS STUDIO PERÚ'}</strong></span>
       </div>
     </section>
 
-    ${pages.map((pageItems, idx) => `
+    ${pages.map((pageItems, idx) => {
+      const hasEmptySlotForGuide = pageItems.length < 6;
+      return `
       <section class="print-page">
-        <div>
+        <div style="display:flex;flex-direction:column;flex:1;">
           <header class="print-header">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:34px;height:34px;border-radius:8px;background:#d8ff3e;color:#121211;display:grid;place-items:center;font:700 17px 'Space Grotesk',sans-serif;">K.</div>
+            <div style="display:flex;align-items:center;gap:9px;">
+              <div style="width:26px;height:26px;border-radius:5.5px;background-color:#d8ff3e !important;color:#121211 !important;display:grid;place-items:center;font:700 14px 'Space Grotesk',sans-serif;">K.</div>
               <div>
-                <div style="font:700 17px 'Space Grotesk',sans-serif;letter-spacing:-0.03em;line-height:1;">KICKS STUDIO · OFFICIAL DROPBOOK</div>
-                <div style="font:700 8.5px 'JetBrains Mono',monospace;color:#d8ff3e;letter-spacing:0.14em;margin-top:3px;">
-                  ${activeBrand !== 'Todos' ? 'COLECCIÓN ' + esc(activeBrand.toUpperCase()) : 'TODAS LAS MARCAS'} ${activeSize !== 'Todas' ? '· FILTRO EUR ' + esc(activeSize) : ''}
+                <div style="font:700 15px 'Space Grotesk',sans-serif;letter-spacing:-0.03em;line-height:1;color:#ffffff !important;">KICKS STUDIO · OFFICIAL CATALOG</div>
+                <div style="font:700 7.8px 'JetBrains Mono',monospace;color:#d8ff3e !important;letter-spacing:0.12em;margin-top:2px;">
+                  ${activeBrand !== 'Todos' ? 'COLECCIÓN ' + esc(activeBrand.toUpperCase()) : 'SELECCIÓN MULTIMARCA'} ${activeSize !== 'Todas' ? '· FILTRO EUR ' + esc(activeSize) : ''} · PÁG. ${idx + 1} DE ${pages.length}
                 </div>
               </div>
             </div>
-            <div style="text-align:right;font:700 9px 'JetBrains Mono',monospace;color:#d0d0ca;">
-              <div>FECHA: ${esc(dateStr)}</div>
-              ${whatsappRaw ? `<div style="color:#d8ff3e;">WA PEDIDOS: +${esc(whatsappRaw)}</div>` : ''}
+            <div style="text-align:right;font:700 8.2px 'JetBrains Mono',monospace;color:#ffffff !important;">
+              <div>STOCK VERIFICADO: ${esc(dateStr)}</div>
+              ${whatsappRaw ? `<div style="color:#d8ff3e !important;">WHATSAPP PEDIDOS: +${esc(whatsappRaw)}</div>` : ''}
             </div>
           </header>
 
           <div class="print-grid">
-            ${pageItems.map(p => {
-              const totalUnits = getProductTotalStock(p);
-              return `
-              <article class="print-card">
-                <div class="print-card-top">
-                  <span style="font-size:9.5px;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#d8ff3e;">
-                    ${esc(p.brand)}${p.category ? ' // ' + esc(p.category) : ''}
-                  </span>
-                  <span style="font:700 9.5px 'JetBrains Mono',monospace;background:#ffffff;color:#121211;padding:1px 6px;border-radius:3px;">
-                    ART. ${esc(p.sku)}
-                  </span>
-                </div>
-
-                <div class="print-card-photo">
-                  ${imgHtml(p.image, p.model)}
-                  <span style="position:absolute;bottom:6px;left:6px;background:#121211;color:#ffffff;font:700 8px 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;letter-spacing:0.08em;">
-                    STOCK: ${totalUnits} ${totalUnits === 1 ? 'PAR' : 'PARES'}
-                  </span>
-                </div>
-
-                <div class="print-card-body">
-                  <div>
-                    <h3 style="font:700 15px/1.12 'Space Grotesk',sans-serif;letter-spacing:-0.03em;text-transform:uppercase;margin:0 0 6px;color:#121211;">
-                      ${esc(p.model || 'MODELO SIN TÍTULO')}
-                    </h3>
-
-                    <div style="font-size:8px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#6e6d66;margin-bottom:4px;">
-                      TALLAS EN STOCK (EUR)
-                    </div>
-                    <div class="print-sizes">
-                      ${p.sizes.length
-                        ? p.sizes.map(s => {
-                            const q = getSizeQty(p, s);
-                            return `<span class="print-size-pill">EUR ${esc(s)}${q > 1 ? ' · ' + q + 'p' : ''}</span>`;
-                          }).join('')
-                        : `<span class="print-size-pill">AGOTADO</span>`
-                      }
-                    </div>
-                  </div>
-
-                  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;border-top:1.5px solid #121211;padding-top:7px;margin-top:4px;">
-                    <div style="font:700 8px/1.35 'JetBrains Mono',monospace;color:#444;max-width:58%;">
-                      ${p.equivalence ? esc(p.equivalence) : 'AUTENTICIDAD GARANTIZADA'}
-                    </div>
-                    <div class="print-price-tag">
-                      <small style="font-size:9.5px;font-weight:800;margin-right:2px;">S/</small>${p.price.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                  </div>
-                </div>
-              </article>
-            `;
-            }).join('')}
+            ${pageItems.map(renderCardItem).join('')}
+            ${hasEmptySlotForGuide ? renderOrderGuideCardHtml(whatsappRaw, dateStr) : ''}
           </div>
         </div>
 
         <footer class="print-footer">
-          <span>KICKS STUDIO · ARCHIVE DROPBOOK</span>
-          <span>ENVÍA CAPTURA O CÓDIGO ART/SKU POR WHATSAPP ${whatsappRaw ? '(+' + esc(whatsappRaw) + ')' : ''}</span>
-          <span>HOJA ${idx + 1} / ${pages.length}</span>
+          <span>KICKS STUDIO · PRO SNEAKER ARCHIVE</span>
+          <span>RESERVA ENVIANDO EL CÓDIGO ART/SKU POR WHATSAPP ${whatsappRaw ? '(+' + esc(whatsappRaw) + ')' : ''}</span>
+          <span>PÁGINA ${idx + 1} / ${pages.length}</span>
         </footer>
       </section>
-    `).join('')}
+      `;
+    }).join('')}
   `;
   return true;
 }
@@ -3730,9 +4230,7 @@ async function importBackup(e) {
     });
     if (!ok) return;
 
-    const bySku = new Map(catalog.map(p => [p.sku, p]));
-    incoming.forEach(p => bySku.set(p.sku, p));
-    catalog = [...bySku.values()];
+    catalog = consolidateCatalogList([...catalog, ...incoming]);
     persist();
     renderCatalog();
     toast(`Catálogo actualizado: ${catalog.length} productos`);
@@ -3816,7 +4314,9 @@ function doGet(e) {
     const items = [];
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
-      if (!row[1]) continue;
+      if (!row[0] && !row[1] && !row[3]) continue;
+      const canonSku = ksCanonicalizeSku_(row[1], row[0], i);
+      if (!canonSku) continue;
       let images = [];
       try { images = JSON.parse(String(row[9] || '[]')); } catch (_) { images = row[9] ? [String(row[9])] : []; }
       if (!Array.isArray(images)) images = [];
@@ -3826,8 +4326,8 @@ function doGet(e) {
       const parsedStock = ksParseSizesAndStock_(row[6]);
 
       items.push({
-        id: String(row[0] || ('ks-' + String(row[1]).trim().toUpperCase())),
-        sku: String(row[1]).trim().toUpperCase(),
+        id: 'ks-' + canonSku,
+        sku: canonSku,
         brand: String(row[2] || 'Adidas'),
         model: String(row[3] || ''),
         category: String(row[4] || ''),
@@ -4079,9 +4579,22 @@ function ksFormatSizesCell_(sizes, sizeStock) {
   }).filter(Boolean).join(', ');
 }
 
+function ksCanonicalizeSku_(rawSku, rawId, fallbackIndex) {
+  let s = String(rawSku || '').trim().toUpperCase().replace(/[^A-Z0-9._-]/g, '');
+  let idStr = String(rawId || '').trim().toUpperCase().replace(/[^A-Z0-9._-]/g, '');
+  if (!s && idStr) s = idStr.replace(/^KS-+/i, '');
+  if (!s && fallbackIndex) s = String(fallbackIndex);
+  const numMatch = s.match(/^(?:KS-?)?0*(\\d{1,5})$/i);
+  if (numMatch) {
+    const num = parseInt(numMatch[1], 10);
+    if (num > 0 && num < 10000) return 'KS-' + ('0000' + num).slice(-4);
+  }
+  return s;
+}
+
 function ksNormalizeItem_(raw, index) {
   raw = raw || {};
-  const sku = String(raw.sku || '').trim().toUpperCase().replace(/\\s+/g, '');
+  const sku = ksCanonicalizeSku_(raw.sku, raw.id, index + 1);
   const sourceImages = Array.isArray(raw.images) ? raw.images : (Array.isArray(raw.gallery) ? raw.gallery : []);
   const primary = String(raw.image || raw.primaryImage || '').trim();
   const images = [...new Set([primary, ...sourceImages.map(x => String(x || '').trim())].filter(Boolean))];
@@ -4256,7 +4769,7 @@ function copyAppsScript() {
   ta.select();
   document.execCommand('copy');
   ta.remove();
-  toast('Código Apps Script v9 copiado al portapapeles');
+  toast('Código Apps Script v10 copiado al portapapeles');
 }
 
 function requestSheetsJsonp(url, extraParams = {}) {
@@ -4294,10 +4807,8 @@ async function syncFromSheets(notify = false) {
   try {
     const data = await requestSheetsJsonp(url);
     if (!data || data.status !== 'success' || !Array.isArray(data.items)) throw new Error('Respuesta inválida');
-    const remote = data.items
-      .map(normalize)
-      .filter(Boolean)
-      .filter(p => !deletedSkus[p.sku]);
+    const remoteRawCount = data.items.length;
+    const remote = consolidateCatalogList(data.items);
 
     const hadDeletedInRemote = data.items.some(raw => {
       const n = normalize(raw);
@@ -4317,17 +4828,13 @@ async function syncFromSheets(notify = false) {
       }
     }
 
-    const merged = new Map(remote.map(p => [p.sku, p]));
-    catalog.forEach(p => {
-      if (!deletedSkus[p.sku]) merged.set(p.sku, p);
-    });
-    catalog = [...merged.values()];
+    catalog = consolidateCatalogList([...remote, ...catalog]);
     persist();
     renderCatalog();
     $('catalogSyncLabel').textContent = 'Sincronizado con Google Sheets';
-    if (notify) toast(`Sincronización completada (${catalog.length} productos)`);
+    if (notify) toast(`Sincronización completada (${catalog.length} modelos únicos)`);
 
-    if (hadDeletedInRemote) {
+    if (hadDeletedInRemote || remoteRawCount > catalog.length) {
       pushCatalogToSheets(false);
     }
     return true;
@@ -4428,10 +4935,12 @@ window.addEventListener('online', () => {
 });
 
 // Initialize workspace
-window.onload = function () {
+window.onload = async function () {
   try { localStorage.removeItem('kicks_pe_gas_url'); } catch (_) {}
   renderSizes();
   readStorage();
+  // Auto-depuración silenciosa de duplicados en segundo plano (cada modelo se ve una sola vez)
+  deduplicateAndNormalizeCatalog(false);
   renderCatalog();
   updateFormPreview();
   syncFromSheets(false);
