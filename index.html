@@ -45,8 +45,8 @@ body {
 }
 .font-display { font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.04em; }
 .font-mono-code { font-family: 'JetBrains Mono', monospace; letter-spacing: -0.02em; }
-button, input, select, textarea { font: inherit; min-width: 0; }
-button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+input, select, textarea { font: inherit; min-width: 0; }
+button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 button:disabled { opacity: 0.55; cursor: not-allowed; }
 img { display: block; max-width: 100%; }
 
@@ -88,6 +88,7 @@ img { display: block; max-width: 100%; }
   gap: 8px;
   transition: transform 0.15s ease, background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .btn:active:not(:disabled) { transform: scale(0.97); }
 .btn-dark { background: var(--ink); color: #fff; }
@@ -101,18 +102,126 @@ img { display: block; max-width: 100%; }
 .btn-danger { background: #fff1f2; color: var(--danger); border: 1px solid #fecdd3; }
 
 .chip {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--line);
   background: #fff;
-  border-radius: 12px;
-  padding: 8px 13px;
-  font-size: 11px;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 11.5px;
   font-weight: 800;
   white-space: nowrap;
   color: var(--muted);
-  transition: all 0.16s ease;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .chip:hover { border-color: rgba(18,18,17,0.3); color: var(--ink); }
-.chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.chip.active { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: 0 4px 12px rgba(18,18,17,0.14); }
+
+.chips-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 2px 4px 10px 2px;
+}
+.chips-scroll::-webkit-scrollbar { display: none; }
+
+/* Menú Flotante Estilo Apple iOS 22 (Liquid Glass Capsule) */
+.ios-dock-wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(14px + var(--safe-bottom));
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}
+.ios-dock {
+  pointer-events: auto;
+  width: min(410px, 100%);
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(22, 22, 21, 0.82);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 20px 45px -10px rgba(0, 0, 0, 0.38),
+    0 4px 12px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 4px;
+}
+.ios-tab {
+  position: relative;
+  border: 0;
+  background: transparent;
+  color: rgba(244, 243, 238, 0.62);
+  border-radius: 999px;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+.ios-tab svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ios-tab:active { transform: scale(0.94); }
+.ios-tab.active {
+  background: rgba(255, 255, 255, 0.13);
+  color: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.ios-tab.active svg {
+  color: var(--acid);
+  transform: translateY(-1px);
+}
+.ios-tab-scan.active {
+  background: var(--acid);
+  color: var(--ink);
+  box-shadow: 0 6px 20px rgba(216, 255, 62, 0.38);
+}
+.ios-tab-scan.active svg {
+  color: var(--ink);
+}
+.ios-tab-scan .scan-pill-icon {
+  width: 22px;
+  height: 22px;
+}
+.ios-badge {
+  position: absolute;
+  top: 4px;
+  right: 14px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ff3b30;
+  color: #fff;
+  font: 800 9px 'JetBrains Mono', monospace;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(255, 59, 48, 0.5);
+}
 
 .product-card {
   background: #fff;
@@ -484,16 +593,21 @@ img { display: block; max-width: 100%; }
     </nav>
 
     <div class="flex items-center gap-2">
-      <button class="btn btn-light" id="syncBtn" onclick="syncFromSheets(true)" title="Sincronizar con Google Sheets">
-        <span>↻</span><span class="hidden sm:inline">Sheets</span>
+      <button class="btn btn-light !px-3" id="syncBtn" onclick="syncFromSheets(true)" title="Sincronizar con Google Sheets">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+        <span class="hidden sm:inline">Sheets</span>
       </button>
       <button class="btn btn-light hidden sm:inline-flex" onclick="printCatalog()">
-        <span>🖨</span><span class="hidden lg:inline">PDF / Catálogo</span>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14" rx="1"/></svg>
+        <span class="hidden lg:inline">PDF / Catálogo</span>
       </button>
       <button class="btn btn-acid" onclick="newProduct()">
-        <span>＋</span><span class="hidden sm:inline">Nuevo Par</span>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+        <span class="hidden sm:inline">Escanear / +</span>
       </button>
-      <button class="btn btn-dark !px-3" onclick="openSettings()" title="Ajustes">⚙</button>
+      <button class="btn btn-dark !px-3" onclick="openSettings()" title="Ajustes" aria-label="Ajustes">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
     </div>
   </div>
 </header>
@@ -557,7 +671,7 @@ img { display: block; max-width: 100%; }
       </div>
     </div>
 
-    <div class="flex gap-1.5 overflow-x-auto pb-2 no-print" id="brandChips">
+    <div class="chips-scroll no-print" id="brandChips">
       <button class="chip active" data-brand="Todos" onclick="setBrand('Todos')">Todas las marcas</button>
       <button class="chip" data-brand="Adidas" onclick="setBrand('Adidas')">Adidas</button>
       <button class="chip" data-brand="Nike" onclick="setBrand('Nike')">Nike</button>
@@ -569,7 +683,7 @@ img { display: block; max-width: 100%; }
       <button class="chip" data-brand="Otra marca" onclick="setBrand('Otra marca')">Otras</button>
     </div>
 
-    <div class="flex gap-1.5 overflow-x-auto pb-3 no-print" id="sizeChips"></div>
+    <div class="chips-scroll !pb-3 no-print" id="sizeChips"></div>
 
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 mt-2" id="catalogGrid"></div>
 
@@ -840,7 +954,7 @@ img { display: block; max-width: 100%; }
       </div>
     </div>
 
-    <div class="flex gap-1.5 overflow-x-auto pb-3" id="orderFilterChips">
+    <div class="chips-scroll !pb-3" id="orderFilterChips">
       <button class="chip active" data-ostatus="TODOS" onclick="setOrderFilter('TODOS')">Todas las solicitudes</button>
       <button class="chip" data-ostatus="PENDIENTE" onclick="setOrderFilter('PENDIENTE')">Pendientes por atender</button>
       <button class="chip" data-ostatus="CONFIRMADO" onclick="setOrderFilter('CONFIRMADO')">Ventas Confirmadas</button>
@@ -849,7 +963,9 @@ img { display: block; max-width: 100%; }
     <div id="ordersList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"></div>
 
     <div id="ordersEmpty" class="bg-white border border-dashed border-black/20 rounded-[24px] py-12 px-5 text-center my-4">
-      <div class="w-12 h-12 rounded-2xl bg-[#f4f3ee] mx-auto grid place-items-center font-display font-bold text-lg text-[#6e6d66]">📥</div>
+      <div class="w-12 h-12 rounded-2xl bg-[#f4f3ee] mx-auto grid place-items-center text-[#121211]">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+      </div>
       <h3 class="font-display font-bold text-xl mt-3 mb-1">Sin solicitudes registradas</h3>
       <p class="text-xs text-[#6e6d66] max-w-md mx-auto">Cuando un cliente arme su carrito en tu página pública y envíe su pedido, aparecerá aquí automáticamente sincronizado desde Google Sheets.</p>
     </div>
@@ -863,25 +979,49 @@ img { display: block; max-width: 100%; }
   <section id="printLookbook" class="print-lookbook" aria-hidden="true"></section>
 </main>
 
-<nav class="md:hidden fixed z-50 left-0 right-0 bottom-0 px-3 py-2 bg-[#faf9f6]/95 border-t border-black/10 backdrop-blur-xl flex justify-around items-center no-print" style="padding-bottom: calc(8px + var(--safe-bottom));">
-  <button id="mobileCatalog" class="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-[#121211]" onclick="switchView('catalog')">
-    <span class="text-lg">▦</span>
-    <span>Catálogo (<b id="countMob">0</b>)</span>
-  </button>
-  <button class="w-12 h-11 rounded-2xl bg-[#d8ff3e] text-[#121211] font-bold text-xl shadow-md grid place-items-center border border-black/10" onclick="newProduct()" aria-label="Añadir par">＋</button>
-  <button id="mobileEditor" class="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-[#6e6d66]" onclick="switchView('editor')">
-    <span class="text-lg">⌗</span>
-    <span>Escáner</span>
-  </button>
-  <button id="mobileOrders" class="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-[#6e6d66] relative" onclick="switchView('orders')">
-    <span class="text-lg">📥</span>
-    <span>Pedidos (<b id="ordersBadgeMob">0</b>)</span>
-  </button>
-  <button class="flex flex-col items-center gap-0.5 text-[10px] font-extrabold text-[#6e6d66]" onclick="openSettings()">
-    <span class="text-lg">⚙</span>
-    <span>Ajustes</span>
-  </button>
-</nav>
+<div class="md:hidden ios-dock-wrap no-print">
+  <nav class="ios-dock" aria-label="Menú principal móvil">
+    <button id="mobileCatalog" class="ios-tab active" onclick="switchView('catalog')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="2"/>
+        <rect x="14" y="3" width="7" height="7" rx="2"/>
+        <rect x="3" y="14" width="7" height="7" rx="2"/>
+        <rect x="14" y="14" width="7" height="7" rx="2"/>
+      </svg>
+      <span>Catálogo (<b id="countMob">0</b>)</span>
+    </button>
+
+    <button id="mobileEditor" class="ios-tab ios-tab-scan" onclick="newProduct()">
+      <svg class="scan-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+        <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+        <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+        <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+        <path d="M12 8v8"/>
+        <path d="M8 12h8"/>
+      </svg>
+      <span>Escáner +</span>
+    </button>
+
+    <button id="mobileOrders" class="ios-tab" onclick="switchView('orders')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+        <path d="M3 6h18"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+      <span>Pedidos (<b id="ordersBadgeMob">0</b>)</span>
+      <span id="ordersBadgeMobFloating" class="ios-badge hidden">0</span>
+    </button>
+
+    <button id="mobileSettings" class="ios-tab" onclick="openSettings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      <span>Ajustes</span>
+    </button>
+  </nav>
+</div>
 
 <!-- DETAIL MODAL -->
 <div class="overlay" id="detailOverlay" onclick="overlayClick(event,'detailOverlay')">
@@ -996,21 +1136,20 @@ img { display: block; max-width: 100%; }
     <div class="flex justify-between items-center p-5 border-b border-black/10">
       <div>
         <div class="eyebrow">CONFIGURACIÓN</div>
-        <h3 class="font-display font-bold text-xl">Ajustes y Google Sheets</h3>
+        <h3 class="font-display font-bold text-xl">Ajustes del Sistema</h3>
       </div>
       <button class="w-9 h-9 rounded-xl bg-white border border-black/10 font-bold text-lg" onclick="closeModal('settingsOverlay')">×</button>
     </div>
     <div class="p-5 grid gap-4">
       <div class="field">
-        <label for="sheetsUrl">URL de Google Apps Script Web App (/exec)</label>
-        <input id="sheetsUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec" class="!bg-white">
-      </div>
-      <div class="field">
         <label for="whatsapp">WhatsApp de Pedidos (con código de país)</label>
         <input id="whatsapp" type="tel" placeholder="51999888777" class="!bg-white">
       </div>
-      <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs text-blue-950 leading-relaxed">
-        <strong>Sincronización Cloud:</strong> Los productos se guardan instantáneamente en tu navegador. Si configuras la URL de Google Apps Script, podrás respaldar y combinar todo tu catálogo e imágenes con Google Sheets y Google Drive.
+      <div class="p-3.5 rounded-2xl bg-[#f4f3ee] border border-black/10 text-xs text-[#121211] leading-relaxed flex items-start gap-3">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1 flex-shrink-0"></span>
+        <div>
+          <strong>Enlace Cloud Fijo en Código:</strong> La conexión con Google Sheets y Google Drive está integrada internamente de forma permanente. Todo tu catálogo, imágenes y pedidos se respaldan automáticamente.
+        </div>
       </div>
       <div class="flex flex-wrap gap-2">
         <button class="btn btn-dark" onclick="saveSettings()">Guardar ajustes</button>
@@ -1086,9 +1225,10 @@ function markPendingSync(isPending) {
   try { localStorage.setItem(PENDING_SYNC_KEY, pendingCloudSync ? '1' : ''); } catch (_) {}
   const syncBtn = $('syncBtn');
   if (syncBtn) {
+    const syncSvg = `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>`;
     syncBtn.innerHTML = pendingCloudSync
-      ? `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>↻</span><span class="hidden sm:inline">Sheets (Pendiente)</span>`
-      : `<span>↻</span><span class="hidden sm:inline">Sheets</span>`;
+      ? `<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>${syncSvg}<span class="hidden sm:inline">Sheets (Pendiente)</span>`
+      : `${syncSvg}<span class="hidden sm:inline">Sheets</span>`;
   }
 }
 
@@ -2373,9 +2513,9 @@ function switchView(view) {
   $('navEditor').className = isEd ? activeNavCls : idleNavCls;
   if ($('navOrders')) $('navOrders').className = isOrd ? activeNavCls : idleNavCls;
 
-  $('mobileCatalog').className = `flex flex-col items-center gap-0.5 text-[10px] font-extrabold ${isCat ? 'text-[#121211]' : 'text-[#6e6d66]'}`;
-  $('mobileEditor').className = `flex flex-col items-center gap-0.5 text-[10px] font-extrabold ${isEd ? 'text-[#121211]' : 'text-[#6e6d66]'}`;
-  if ($('mobileOrders')) $('mobileOrders').className = `flex flex-col items-center gap-0.5 text-[10px] font-extrabold ${isOrd ? 'text-[#121211]' : 'text-[#6e6d66]'}`;
+  $('mobileCatalog').className = `ios-tab ${isCat ? 'active' : ''}`;
+  $('mobileEditor').className = `ios-tab ios-tab-scan ${isEd ? 'active' : ''}`;
+  if ($('mobileOrders')) $('mobileOrders').className = `ios-tab ${isOrd ? 'active' : ''}`;
 
   if (isCat) renderCatalog();
   if (isOrd) renderOrders();
@@ -2698,7 +2838,7 @@ async function saveProduct(e) {
   switchView('catalog');
   toast(`Par ${sku} guardado (${getProductTotalStock(item)} ${getProductTotalStock(item) === 1 ? 'par' : 'pares'} en stock)`);
   
-  const gasUrl = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  const gasUrl = DEFAULT_GAS_URL;
   if (gasUrl) {
     const synced = await pushCatalogToSheets(false);
     if (synced) toast(`Par ${sku} sincronizado y verificado en Google Sheets`);
@@ -2880,7 +3020,7 @@ async function deleteSelected() {
   closeModal('detailOverlay');
   toast(`Eliminando ${skuUpper} de Google Sheets…`);
 
-  const gasUrl = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  const gasUrl = DEFAULT_GAS_URL;
   if (!gasUrl) {
     toast(`Eliminado del dispositivo; configura Apps Script para borrar ${skuUpper} de Sheets.`);
     return;
@@ -3367,6 +3507,11 @@ function updateOrdersBadges() {
     desk.classList.toggle('hidden', pendingCount === 0);
   }
   if ($('ordersBadgeMob')) $('ordersBadgeMob').textContent = pendingCount;
+  const mobFloat = $('ordersBadgeMobFloating');
+  if (mobFloat) {
+    mobFloat.textContent = pendingCount;
+    mobFloat.classList.toggle('hidden', pendingCount === 0);
+  }
 }
 
 function setOrderFilter(st) {
@@ -3507,7 +3652,7 @@ async function confirmOrderAndDiscount(orderId) {
   renderCatalog();
   toast(`✓ Pedido ${ord.id} confirmado y stock actualizado`);
 
-  const url = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  const url = DEFAULT_GAS_URL;
   if (url) {
     try {
       await requestSheetsJsonp(url, { action: 'updateOrderStatus', orderId: ord.id, status: 'CONFIRMADO', discount: '1' });
@@ -3526,7 +3671,7 @@ async function deleteOrderFromAdmin(orderId) {
   if (!ok) return;
   orders = orders.filter(x => x.id !== orderId);
   renderOrders();
-  const url = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  const url = DEFAULT_GAS_URL;
   if (url) {
     try { await requestSheetsJsonp(url, { action: 'deleteOrder', orderId }); } catch (_) {}
   }
@@ -3597,19 +3742,16 @@ async function importBackup(e) {
 }
 
 function openSettings() {
-  $('sheetsUrl').value = localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL;
   $('whatsapp').value = localStorage.getItem('kicks_pe_whatsapp') || '';
   $('settingsOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
 function saveSettings() {
-  const url = $('sheetsUrl').value.trim() || DEFAULT_GAS_URL;
-  localStorage.setItem('kicks_pe_gas_url', url);
   localStorage.setItem('kicks_pe_whatsapp', $('whatsapp').value.trim());
   closeModal('settingsOverlay');
   toast('Ajustes guardados correctamente');
-  if (url) syncFromSheets(true);
+  syncFromSheets(true);
 }
 
 const APPS_SCRIPT_CODE = `/**
@@ -4140,7 +4282,7 @@ function requestSheetsJsonp(url, extraParams = {}) {
 }
 
 async function syncFromSheets(notify = false) {
-  const url = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  const url = DEFAULT_GAS_URL;
   if (!url) {
     if (notify) toast('Configura primero la URL de Apps Script en Ajustes.');
     return false;
@@ -4199,7 +4341,7 @@ async function syncFromSheets(notify = false) {
 }
 
 async function pushCatalogToSheets(notify = true) {
-  const url = (localStorage.getItem('kicks_pe_gas_url') || DEFAULT_GAS_URL).trim();
+  const url = DEFAULT_GAS_URL;
   if (!url) {
     if (notify) toast('Configura primero la URL de Google Sheets.');
     return false;
@@ -4287,9 +4429,7 @@ window.addEventListener('online', () => {
 
 // Initialize workspace
 window.onload = function () {
-  if (!localStorage.getItem('kicks_pe_gas_url')) {
-    localStorage.setItem('kicks_pe_gas_url', DEFAULT_GAS_URL);
-  }
+  try { localStorage.removeItem('kicks_pe_gas_url'); } catch (_) {}
   renderSizes();
   readStorage();
   renderCatalog();
